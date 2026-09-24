@@ -31,7 +31,23 @@ def test_default_config_loads_with_expected_values(repo_root: Path) -> None:
     assert config.synthetic.group_labels == ("Group_A", "Group_B")
     assert config.synthetic.group_sizes == (40, 40)
     assert config.validation.allowed_groups == ("Group_A", "Group_B")
-    assert "comparison" in config.sections  # later-phase sections are preserved
+    assert config.comparison.group_a == "Group_A"
+    assert config.comparison.fdr_threshold == 0.05
+    assert config.ranking.top_n == 20
+    assert config.figures.format == "png"
+    assert "ml_demo" in config.sections  # sections for unbuilt features are preserved
+    assert "comparison" not in config.sections
+
+
+def test_with_comparison_revalidates() -> None:
+    config = load_config()
+    changed = config.with_comparison(fdr_threshold=0.1, group_b="Group_A", group_a="Group_B")
+    assert changed.comparison.fdr_threshold == 0.1
+    assert config.comparison.fdr_threshold == 0.05
+    with pytest.raises(ConfigError, match="must differ"):
+        config.with_comparison(group_b="Group_A")
+    with pytest.raises(ConfigError, match="fdr_threshold"):
+        config.with_comparison(fdr_threshold=0.0)
 
 
 def test_paths_are_absolute_and_under_root(repo_root: Path) -> None:
@@ -86,6 +102,16 @@ def test_invalid_yaml_raises(tmp_path: Path) -> None:
         (lambda raw: raw["validation"].update(min_samples_per_group=1), "min_samples_per_group"),
         (lambda raw: raw["validation"].update(allowed_groups=["Only"]), "allowed_groups"),
         (lambda raw: raw["paths"].update(outputs_dir=""), "outputs_dir"),
+        (lambda raw: raw["comparison"].update(fdr_method="bonferroni"), "fdr_method"),
+        (lambda raw: raw["comparison"].update(effect_size_threshold=-1), "effect_size"),
+        (lambda raw: raw["comparison"].update(group_b="Group_A"), "must differ"),
+        (lambda raw: raw["normalization"].update(median_center_samples="yes"), "true or false"),
+        (lambda raw: raw["ranking"].update(p_floor=0), "p_floor"),
+        (lambda raw: raw["ranking"].update(top_n=0), "top_n"),
+        (lambda raw: raw["qc"].update(pca_components=1), "pca_components"),
+        (lambda raw: raw["figures"].update(format="gif"), "format"),
+        (lambda raw: raw["figures"].update(dpi=5), "dpi"),
+        (lambda raw: raw.pop("comparison"), "section 'comparison'"),
     ],
 )
 def test_invalid_values_raise_clear_errors(tmp_path: Path, mutate: Mutator, message: str) -> None:

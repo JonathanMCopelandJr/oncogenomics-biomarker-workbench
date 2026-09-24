@@ -1,6 +1,6 @@
 # Reproducibility
 
-**Status:** Phase 1 baseline. Extended as features are added.
+**Status:** Covers Phases 1–3 (environment, synthetic data, analysis pipeline).
 
 ## Environment
 
@@ -24,7 +24,11 @@ python -m pip install -r requirements-dev.txt -e .
   global random state.
 - CSVs are written with a fixed float format (`%.3f`), UTF-8 encoding, and LF line
   endings. The data manifest contains no timestamps or environment details.
-- ML steps (Phase 3) receive `random_state` derived from the same seed.
+- The analysis pipeline involves no randomness. PCA uses a full SVD, and heatmap
+  sample selection is a deterministic, group-balanced choice by sample ID. Result
+  ordering breaks ties by `gene_id`. Re-running on the same inputs gives the same
+  tables. Only the timestamp and git state in the run manifest change.
+- The planned ML demonstration will receive `random_state` derived from the same seed.
 
 ## Committed demo data and checksums
 
@@ -46,7 +50,22 @@ instead of silently shipping different data.
 - The `obw` CLI is the task runner on every OS. The `Makefile` is an optional shortcut
   for macOS and Linux.
 
-## Run provenance (Phase 3)
+## Run provenance
 
-Each analysis run will write `outputs/run_manifest.json` with the config hash, seed,
-package versions, git commit (if available), and timestamp.
+Every `obw qc` and `obw run-analysis` run writes `run_manifest.json` next to its
+outputs. The manifest records:
+
+- the UTC timestamp, workbench version, Python version, and OS family
+- versions of the key scientific packages
+- the git commit, and whether the working tree had uncommitted changes (`dirty`)
+- the configuration file path and SHA-256
+- the seed and all analysis parameters
+- SHA-256 checksums of every input and output file
+
+Paths are stored relative to the project root, or as bare file names outside it, so
+manifests do not reveal local directory names.
+
+To reproduce a run: check out the recorded commit, install the pinned requirements,
+and run the same command with the same configuration. Then compare the output
+checksums with the manifest. PNG checksums may differ across matplotlib versions or
+platforms because of font rendering. The CSV tables are the reproducible record.

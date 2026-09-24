@@ -1,9 +1,9 @@
 """Command-line interface for the workbench (``obw``).
 
 This is the project's cross-platform task runner: the Makefile and README
-commands delegate here. Implemented: ``disclaimer``, ``generate-data``, and
-``validate``. The remaining subcommands are registered so the interface is
-visible, but they exit with a clear message until later phases implement them.
+commands delegate here. Implemented: ``disclaimer``, ``generate-data``,
+``validate``, ``qc``, and ``run-analysis``. ``dashboard`` is registered so the
+interface is visible, but it exits with a clear message until Phase 4.
 """
 
 from __future__ import annotations
@@ -19,12 +19,11 @@ from onco_workbench import __version__
 from onco_workbench.config import ConfigError, WorkbenchConfig, load_config
 from onco_workbench.data.io import DataLoadError, load_expression, load_metadata, write_dataset
 from onco_workbench.data.synthetic import generate_synthetic_dataset
-from onco_workbench.data.validation import ValidationReport, validate_dataset
+from onco_workbench.data.validation import DataValidationError, ValidationReport, validate_dataset
 from onco_workbench.disclaimers import DATA_LABEL, FULL_DISCLAIMER, SHORT_DISCLAIMER
 
 # Subcommand name -> (help text, phase in which it will be implemented).
 _PLANNED_COMMANDS: dict[str, tuple[str, int]] = {
-    "run-analysis": ("Run QC, group comparison, figures, and reports.", 3),
     "dashboard": ("Launch the Streamlit dashboard.", 4),
 }
 
@@ -82,6 +81,50 @@ def build_parser() -> argparse.ArgumentParser:
         "--expression", type=Path, default=None, help="Expression matrix CSV (samples x genes)."
     )
     validate.add_argument("--metadata", type=Path, default=None, help="Sample metadata CSV.")
+
+    inputs = argparse.ArgumentParser(add_help=False)
+    inputs.add_argument(
+        "--expression", type=Path, default=None, help="Expression CSV (default: demo data)."
+    )
+    inputs.add_argument(
+        "--metadata", type=Path, default=None, help="Metadata CSV (default: demo data)."
+    )
+    inputs.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory for tables, figures, report, and manifest (default: outputs/).",
+    )
+
+    subparsers.add_parser(
+        "qc",
+        parents=[common, inputs],
+        help="Validate inputs and write QC tables, figures, and a QC report.",
+    )
+
+    analysis = subparsers.add_parser(
+        "run-analysis",
+        parents=[common, inputs],
+        help="Run QC and the two-group comparison; write tables, figures, and a report.",
+    )
+    analysis.add_argument(
+        "--ground-truth",
+        type=Path,
+        default=None,
+        help="Synthetic ground-truth CSV for the workflow check (default: demo file when "
+        "using demo data).",
+    )
+    analysis.add_argument("--group-a", default=None, help="Reference group label.")
+    analysis.add_argument("--group-b", default=None, help="Comparison group label.")
+    analysis.add_argument(
+        "--fdr-threshold", type=float, default=None, help="Adjusted p-value display threshold."
+    )
+    analysis.add_argument(
+        "--effect-size-threshold",
+        type=float,
+        default=None,
+        help="Absolute Cohen's d display threshold.",
+    )
 
     for name, (help_text, phase) in _PLANNED_COMMANDS.items():
         subparsers.add_parser(name, help=f"{help_text} [not yet implemented: Phase {phase}]")
@@ -158,6 +201,75 @@ def _cmd_validate(args: argparse.Namespace) -> int:
     return EXIT_OK if report.is_valid else EXIT_FAILURE
 
 
+def _run_pipeline_command(args: argparse.Namespace, *, include_comparison: bool) -> int:
+    # Imported lazily so `obw --version` and `obw validate` stay fast.
+    from onco_workbench.pipeline import run_pipeline
+
+    config = load_config(args.config)
+    overrides = {
+        key: value
+        for key, value in {
+            "group_a": getattr(args, "group_a", None),
+            "group_b": getattr(args, "group_b", None),
+            "fdr_threshold": getattr(args, "fdr_threshold", None),
+            "effect_size_threshold": getattr(args, "effect_size_threshold", None),
+        }.items()
+        if value is not None
+    }
+    if overrides:
+        config = config.with_comparison(**overrides)
+    try:
+        run = run_pipeline(
+            config,
+            expression_path=args.expression,
+            metadata_path=args.metadata,
+            ground_truth_path=getattr(args, "ground_truth", None),
+            output_dir=args.output_dir,
+            include_comparison=include_comparison,
+        )
+    except DataValidationError as exc:
+        print(exc.report.summary(), file=sys.stderr)
+        print("Inputs failed validation; no analysis outputs were written.", file=sys.stderr)
+        return EXIT_FAILURE
+    except ValueError as exc:
+        if isinstance(exc, ConfigError | DataLoadError):
+            raise
+        print(f"obw {args.command}: {exc}", file=sys.stderr)
+        return EXIT_FAILURE
+
+    print(DATA_LABEL)
+    qc = run.qc.summary
+    print(f"{run.validation.summary().splitlines()[0]}")
+    print(f"QC: {qc.n_samples} samples x {qc.n_genes} genes, {qc.missing_fraction:.2%} missing.")
+    if run.comparison is not None:
+        c = config.comparison
+        results = run.comparison.results
+        print(
+            f"Comparison {c.group_b} vs {c.group_a}: {int(results['p_value'].notna().sum())} "
+            f"genes tested, {int(results['meets_thresholds'].sum())} meet the display "
+            f"thresholds (adj. p <= {c.fdr_threshold:g}, |d| >= {c.effect_size_threshold:g})."
+        )
+        if run.comparison.recovery is not None:
+            r = run.comparison.recovery
+            print(
+                f"Synthetic ground-truth check: {r.true_positives}/{r.n_planted} planted genes "
+                f"recovered, {r.false_positives} flagged genes were not planted."
+            )
+    print(f"Outputs written to {run.output_dir}:")
+    for path in run.files.values():
+        print(f"  {path.relative_to(run.output_dir).as_posix()}")
+    print(SHORT_DISCLAIMER)
+    return EXIT_OK
+
+
+def _cmd_qc(args: argparse.Namespace) -> int:
+    return _run_pipeline_command(args, include_comparison=False)
+
+
+def _cmd_run_analysis(args: argparse.Namespace) -> int:
+    return _run_pipeline_command(args, include_comparison=True)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the CLI.
 
@@ -179,7 +291,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(FULL_DISCLAIMER)
         return EXIT_OK
 
-    handlers = {"generate-data": _cmd_generate_data, "validate": _cmd_validate}
+    handlers = {
+        "generate-data": _cmd_generate_data,
+        "validate": _cmd_validate,
+        "qc": _cmd_qc,
+        "run-analysis": _cmd_run_analysis,
+    }
     if args.command in handlers:
         try:
             return handlers[args.command](args)

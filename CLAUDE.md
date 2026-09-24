@@ -65,6 +65,12 @@ If anything fails, say so and show the output. Do not claim success without runn
 | CLI help | `obw --help` |
 | Regenerate committed demo data | `obw generate-data` (then review the diff; `tests/test_demo_data.py` checks checksums) |
 | Validate data | `obw validate [--expression X.csv --metadata Y.csv]` |
+| QC only / full analysis | `obw qc` / `obw run-analysis [--output-dir DIR]` (writes to gitignored `outputs/`) |
+| Fast tests (skip end-to-end) | `python -m pytest -m "not e2e"` |
+
+Report and figure wording must stay neutral: say "met the display thresholds" or
+"simulated difference detected", never "biomarker", "significant finding", or any
+biological or clinical interpretation.
 
 If a change alters generator output, regenerate the demo files in the same change and
 say so explicitly. Never edit files in `data/synthetic/` by hand.

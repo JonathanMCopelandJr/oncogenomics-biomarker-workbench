@@ -4,9 +4,11 @@ Relative paths in the configuration are resolved against a project root. By defa
 the root is the parent of the directory containing the configuration file (config
 files live in ``<root>/config/``), so the same file works on every operating system.
 
-Sections used from Phase 2 onward (``seed``, ``paths``, ``synthetic``,
-``validation``) are parsed into typed, validated dataclasses. Sections for later
-phases are kept as raw mappings in :attr:`WorkbenchConfig.sections`.
+Implemented sections (``seed``, ``paths``, ``synthetic``, ``validation``,
+``normalization``, ``comparison``, ``ranking``, ``qc``, ``figures``) are parsed
+into typed, validated dataclasses; unknown keys are rejected. Sections for
+features not yet built (currently ``ml_demo``) are kept as raw mappings in
+:attr:`WorkbenchConfig.sections`.
 """
 
 from __future__ import annotations
@@ -151,6 +153,100 @@ class ValidationConfig:
 
 
 @dataclass(frozen=True)
+class NormalizationConfig:
+    """Normalization switches (appropriate for synthetic continuous values only)."""
+
+    median_center_samples: bool
+    zscore_genes_for_plots: bool
+
+
+SUPPORTED_FDR_METHODS: tuple[str, ...] = ("fdr_bh",)
+
+
+@dataclass(frozen=True)
+class ComparisonConfig:
+    """Two-group comparison settings. Thresholds are display/flagging choices only."""
+
+    group_a: str
+    group_b: str
+    min_non_missing_per_group: int
+    fdr_method: str
+    fdr_threshold: float
+    effect_size_threshold: float
+
+    def __post_init__(self) -> None:
+        section = "comparison"
+        _check_identifier(section, "group_a", self.group_a)
+        _check_identifier(section, "group_b", self.group_b)
+        if self.group_a == self.group_b:
+            _fail(section, f"group_a and group_b must differ, both are {self.group_a!r}.")
+        if self.min_non_missing_per_group < 2:
+            _fail(
+                section,
+                f"min_non_missing_per_group must be >= 2, got {self.min_non_missing_per_group}.",
+            )
+        if self.fdr_method not in SUPPORTED_FDR_METHODS:
+            _fail(
+                section,
+                f"fdr_method must be one of {', '.join(SUPPORTED_FDR_METHODS)}, "
+                f"got {self.fdr_method!r}.",
+            )
+        if not 0.0 < self.fdr_threshold <= 1.0:
+            _fail(section, f"fdr_threshold must be in (0, 1], got {self.fdr_threshold}.")
+        if self.effect_size_threshold < 0:
+            _fail(section, f"effect_size_threshold must be >= 0, got {self.effect_size_threshold}.")
+
+
+@dataclass(frozen=True)
+class RankingConfig:
+    """Ranking-score settings: ``score = |d| * -log10(max(p_adj, p_floor))``."""
+
+    p_floor: float
+    top_n: int
+
+    def __post_init__(self) -> None:
+        if not 0.0 < self.p_floor < 1.0:
+            _fail("ranking", f"p_floor must be in (0, 1), got {self.p_floor}.")
+        if self.top_n < 1:
+            _fail("ranking", f"top_n must be >= 1, got {self.top_n}.")
+
+
+@dataclass(frozen=True)
+class QCConfig:
+    """Quality-control settings."""
+
+    heatmap_max_samples: int
+    pca_components: int
+
+    def __post_init__(self) -> None:
+        if self.heatmap_max_samples < 2:
+            _fail("qc", f"heatmap_max_samples must be >= 2, got {self.heatmap_max_samples}.")
+        if self.pca_components < 2:
+            _fail("qc", f"pca_components must be >= 2, got {self.pca_components}.")
+
+
+SUPPORTED_FIGURE_FORMATS: tuple[str, ...] = ("png", "svg", "pdf")
+
+
+@dataclass(frozen=True)
+class FiguresConfig:
+    """Static figure export settings."""
+
+    dpi: int
+    format: str
+
+    def __post_init__(self) -> None:
+        if not 50 <= self.dpi <= 600:
+            _fail("figures", f"dpi must be between 50 and 600, got {self.dpi}.")
+        if self.format not in SUPPORTED_FIGURE_FORMATS:
+            _fail(
+                "figures",
+                f"format must be one of {', '.join(SUPPORTED_FIGURE_FORMATS)}, "
+                f"got {self.format!r}.",
+            )
+
+
+@dataclass(frozen=True)
 class WorkbenchConfig:
     """Complete, validated configuration."""
 
@@ -160,6 +256,11 @@ class WorkbenchConfig:
     paths: PathsConfig
     synthetic: SyntheticConfig
     validation: ValidationConfig
+    normalization: NormalizationConfig
+    comparison: ComparisonConfig
+    ranking: RankingConfig
+    qc: QCConfig
+    figures: FiguresConfig
     sections: Mapping[str, Any]
 
     def with_seed(self, seed: int) -> WorkbenchConfig:
@@ -172,6 +273,20 @@ class WorkbenchConfig:
             A new :class:`WorkbenchConfig`.
         """
         return dataclasses.replace(self, seed=_as_int("root", "seed", seed, minimum=0))
+
+    def with_comparison(self, **changes: Any) -> WorkbenchConfig:
+        """Return a copy with selected comparison settings replaced (and re-validated).
+
+        Args:
+            **changes: Field names of :class:`ComparisonConfig` and their new values.
+
+        Returns:
+            A new :class:`WorkbenchConfig`.
+
+        Raises:
+            ConfigError: If a new value is invalid.
+        """
+        return dataclasses.replace(self, comparison=dataclasses.replace(self.comparison, **changes))
 
 
 def _check_identifier(section: str, name: str, value: str) -> None:
@@ -287,6 +402,73 @@ def _parse_validation(values: Mapping[str, Any]) -> ValidationConfig:
     )
 
 
+def _as_bool(section: str, key: str, value: Any) -> bool:
+    if not isinstance(value, bool):
+        _fail(section, f"{key} must be true or false, got {value!r}.")
+    return value
+
+
+def _as_str(section: str, key: str, value: Any) -> str:
+    if not isinstance(value, str) or not value.strip():
+        _fail(section, f"{key} must be a non-empty string, got {value!r}.")
+    return value
+
+
+def _parse_normalization(values: Mapping[str, Any]) -> NormalizationConfig:
+    s = "normalization"
+    _check_keys(s, values, [f.name for f in dataclasses.fields(NormalizationConfig)])
+    return NormalizationConfig(
+        median_center_samples=_as_bool(s, "median_center_samples", values["median_center_samples"]),
+        zscore_genes_for_plots=_as_bool(
+            s, "zscore_genes_for_plots", values["zscore_genes_for_plots"]
+        ),
+    )
+
+
+def _parse_comparison(values: Mapping[str, Any]) -> ComparisonConfig:
+    s = "comparison"
+    _check_keys(s, values, [f.name for f in dataclasses.fields(ComparisonConfig)])
+    return ComparisonConfig(
+        group_a=_as_str(s, "group_a", values["group_a"]),
+        group_b=_as_str(s, "group_b", values["group_b"]),
+        min_non_missing_per_group=_as_int(
+            s, "min_non_missing_per_group", values["min_non_missing_per_group"]
+        ),
+        fdr_method=_as_str(s, "fdr_method", values["fdr_method"]),
+        fdr_threshold=_as_float(s, "fdr_threshold", values["fdr_threshold"]),
+        effect_size_threshold=_as_float(
+            s, "effect_size_threshold", values["effect_size_threshold"]
+        ),
+    )
+
+
+def _parse_ranking(values: Mapping[str, Any]) -> RankingConfig:
+    s = "ranking"
+    _check_keys(s, values, [f.name for f in dataclasses.fields(RankingConfig)])
+    return RankingConfig(
+        p_floor=_as_float(s, "p_floor", values["p_floor"]),
+        top_n=_as_int(s, "top_n", values["top_n"]),
+    )
+
+
+def _parse_qc(values: Mapping[str, Any]) -> QCConfig:
+    s = "qc"
+    _check_keys(s, values, [f.name for f in dataclasses.fields(QCConfig)])
+    return QCConfig(
+        heatmap_max_samples=_as_int(s, "heatmap_max_samples", values["heatmap_max_samples"]),
+        pca_components=_as_int(s, "pca_components", values["pca_components"]),
+    )
+
+
+def _parse_figures(values: Mapping[str, Any]) -> FiguresConfig:
+    s = "figures"
+    _check_keys(s, values, [f.name for f in dataclasses.fields(FiguresConfig)])
+    return FiguresConfig(
+        dpi=_as_int(s, "dpi", values["dpi"]),
+        format=_as_str(s, "format", values["format"]),
+    )
+
+
 def load_config(
     path: str | Path | None = None, *, root: str | Path | None = None
 ) -> WorkbenchConfig:
@@ -318,7 +500,17 @@ def load_config(
     if "seed" not in raw:
         raise ConfigError("Configuration is missing the required key 'seed'.")
 
-    typed = {"seed", "paths", "synthetic", "validation"}
+    typed = {
+        "seed",
+        "paths",
+        "synthetic",
+        "validation",
+        "normalization",
+        "comparison",
+        "ranking",
+        "qc",
+        "figures",
+    }
     return WorkbenchConfig(
         seed=_as_int("root", "seed", raw["seed"], minimum=0),
         root=project_root,
@@ -326,5 +518,10 @@ def load_config(
         paths=_parse_paths(_section(raw, "paths"), project_root),
         synthetic=_parse_synthetic(_section(raw, "synthetic")),
         validation=_parse_validation(_section(raw, "validation")),
+        normalization=_parse_normalization(_section(raw, "normalization")),
+        comparison=_parse_comparison(_section(raw, "comparison")),
+        ranking=_parse_ranking(_section(raw, "ranking")),
+        qc=_parse_qc(_section(raw, "qc")),
+        figures=_parse_figures(_section(raw, "figures")),
         sections={key: value for key, value in raw.items() if key not in typed},
     )

@@ -73,3 +73,45 @@ and optional `batch`. Only blank metadata cells are treated as missing. Text suc
 | `sample_not_in_expression` | warning | Metadata rows without expression data are ignored |
 | `missing_batch` | warning | Batch labels are present when the column exists |
 | `batch_confounded_with_group` | warning | Batches are not each limited to a single group |
+
+## Analysis outputs (`obw qc` / `obw run-analysis`)
+
+These are written under `outputs/` by default. That directory is ignored by Git. Every
+CSV starts with the DEMONSTRATION / SYNTHETIC comment lines. Results tables add two
+more comment lines stating the comparison direction and thresholds. Floats use `%.6g`.
+
+### `tables/group_comparison_results.csv` and `tables/top_ranked_genes.csv`
+
+Sorted by `rank`. The top table keeps the first `ranking.top_n` rows.
+
+| Field | Description |
+|---|---|
+| `rank` | 1 = highest ranking score; blank for untested genes |
+| `gene_id` | Synthetic gene identifier |
+| `n_a`, `n_b` | Observed (non-missing) values in group A and group B |
+| `mean_a`, `mean_b` | Group means (after per-sample median centering, if enabled) |
+| `mean_diff` | `mean_b - mean_a` |
+| `sd_a`, `sd_b` | Group standard deviations (ddof = 1) |
+| `cohens_d` | Standardized difference, B minus A, using the pooled SD |
+| `t_statistic`, `df` | Welch t statistic and Welch-Satterthwaite degrees of freedom |
+| `p_value` | Two-sided raw p-value |
+| `p_adj` | Benjamini-Hochberg adjusted p-value |
+| `ranking_score` | `abs(cohens_d) * -log10(max(p_adj, p_floor))`, a sorting heuristic |
+| `direction` | `higher_in_b`, `lower_in_b`, `no_difference`, or `not_tested` |
+| `meets_thresholds` | `True` if `p_adj <= fdr_threshold` and `abs(cohens_d) >= effect_size_threshold` |
+
+### QC tables
+
+| File | Fields |
+|---|---|
+| `tables/qc_sample_summary.csv` | `sample_id`, `group`, `batch`, `n_missing`, `total_expression` (sum of observed values), `mean`, `median`, `sd` |
+| `tables/qc_gene_summary.csv` | `gene_id`, `mean`, `sd`, `n_missing`, `missing_fraction` |
+| `tables/pca_scores.csv` | `sample_id`, `group`, `batch`, `PC1`, `PC2`, ... |
+
+### Other outputs
+
+| File | Contents |
+|---|---|
+| `figures/*.png` | PCA, per-sample distributions, per-sample totals, sample correlation, volcano-style plot, top-gene bar chart, top-gene heatmap. Each is labeled DEMONSTRATION / SYNTHETIC. |
+| `report.md` | Markdown summary report with the disclaimer, QC, methods, results, ground-truth check, and interpretation limits |
+| `run_manifest.json` | Timestamp (UTC), versions, git commit, config checksum, parameters, and SHA-256 checksums of inputs and outputs |

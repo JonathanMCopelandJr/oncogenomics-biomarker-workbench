@@ -26,8 +26,11 @@ summary, verification commands, open decisions, and a wait for explicit approval
 2. **Synthetic data and validation.** Generator, config loader, loaders, schema
    validation, data dictionary, small demo files, tests.
 3. **Analysis pipeline.** QC, normalization, group comparison, BH correction, ranking,
-   figures, CSV and Markdown exports, run manifest, CLI subcommands, ML demo with
-   leakage tests, walkthrough notebook, end-to-end run.
+   figures, CSV and Markdown exports, run manifest, CLI subcommands, end-to-end run.
+   *As delivered:* the Phase 3 approval scoped the work to "QC and group-comparison",
+   so the ML demo (with leakage tests) and the walkthrough notebook were **not** built
+   in Phase 3. Their scheduling is pending the user's decision. Plotly builders
+   (`viz/interactive.py`) move to Phase 4, where the dashboard uses them.
 4. **Streamlit dashboard.** Six pages on top of the package functions, disclaimers on
    every page, an AppTest smoke test.
 5. **Quality, CI, and polish.** GitHub Actions (Ubuntu 3.11/3.12, Windows and macOS on

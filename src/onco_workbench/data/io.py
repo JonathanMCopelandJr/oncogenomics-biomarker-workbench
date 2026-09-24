@@ -12,6 +12,7 @@ import csv
 import dataclasses
 import hashlib
 import json
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -147,7 +148,13 @@ def file_sha256(path: str | Path) -> str:
 
 
 def write_labeled_csv(
-    frame: pd.DataFrame, path: str | Path, *, index: bool, float_decimals: int
+    frame: pd.DataFrame,
+    path: str | Path,
+    *,
+    index: bool,
+    float_decimals: int | None = None,
+    float_format: str | None = None,
+    extra_comments: Sequence[str] = (),
 ) -> Path:
     """Write a CSV that starts with the synthetic-data comment header.
 
@@ -155,22 +162,27 @@ def write_labeled_csv(
         frame: Table to write.
         path: Destination file; parent directories are created.
         index: Whether to write the DataFrame index as the first column.
-        float_decimals: Number of decimals for floating-point values.
+        float_decimals: Fixed number of decimals for floats (e.g. ``3`` -> ``%.3f``).
+        float_format: Explicit printf-style float format; used when ``float_decimals``
+            is not given. Defaults to ``"%.6g"``, which keeps very small p-values readable.
+        extra_comments: Additional ``#`` comment lines written after the standard header.
 
     Returns:
         The written path.
+
+    Raises:
+        ValueError: If both ``float_decimals`` and ``float_format`` are given.
     """
+    if float_decimals is not None and float_format is not None:
+        raise ValueError("Pass either float_decimals or float_format, not both.")
+    fmt = f"%.{float_decimals}f" if float_decimals is not None else (float_format or "%.6g")
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
         handle.write(as_comment_block("# "))
-        frame.to_csv(
-            handle,
-            index=index,
-            float_format=f"%.{float_decimals}f",
-            lineterminator="\n",
-            na_rep="",
-        )
+        for line in extra_comments:
+            handle.write(f"# {line}\n")
+        frame.to_csv(handle, index=index, float_format=fmt, lineterminator="\n", na_rep="")
     return path
 
 

@@ -374,3 +374,29 @@ def validate_dataset(
             expression, metadata, report, allowed_groups, min_samples_per_group
         )
     return report
+
+
+def align_metadata(expression: pd.DataFrame, metadata: pd.DataFrame) -> pd.DataFrame:
+    """Return metadata rows for the expression samples, in expression-row order.
+
+    Args:
+        expression: Samples as rows (index = sample IDs).
+        metadata: Table with a ``sample_id`` column.
+
+    Returns:
+        Metadata indexed by ``sample_id``, with one row per expression sample and the
+        same order as the expression matrix.
+
+    Raises:
+        ValueError: If metadata lacks ``sample_id`` or any expression sample has no row.
+    """
+    if SAMPLE_ID_COLUMN not in metadata.columns:
+        raise ValueError(f"Sample metadata must contain a '{SAMPLE_ID_COLUMN}' column.")
+    indexed = metadata.drop_duplicates(subset=SAMPLE_ID_COLUMN).set_index(SAMPLE_ID_COLUMN)
+    missing = [sample for sample in expression.index if sample not in indexed.index]
+    if missing:
+        raise ValueError(
+            f"{len(missing)} expression sample(s) have no metadata row: {_preview(missing)}. "
+            "Run `obw validate` for a full report."
+        )
+    return indexed.loc[list(expression.index)]

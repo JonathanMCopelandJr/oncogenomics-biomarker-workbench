@@ -72,3 +72,56 @@ def test_bad_config_path(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> 
     code = cli.main(["generate-data", "--config", str(tmp_path / "none.yaml")])
     assert code == cli.EXIT_FAILURE
     assert "Configuration file not found" in capsys.readouterr().err
+
+
+@pytest.mark.e2e
+def test_run_analysis_on_demo_data(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert cli.main(["run-analysis", "--output-dir", str(tmp_path)]) == cli.EXIT_OK
+    out = capsys.readouterr().out
+    assert DATA_LABEL in out
+    assert "Comparison Group_B vs Group_A: 500 genes tested" in out
+    assert "Synthetic ground-truth check" in out
+    assert (tmp_path / "report.md").is_file()
+    assert (tmp_path / "run_manifest.json").is_file()
+    assert (tmp_path / "tables" / "group_comparison_results.csv").is_file()
+
+
+def test_qc_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert cli.main(["qc", "--output-dir", str(tmp_path)]) == cli.EXIT_OK
+    out = capsys.readouterr().out
+    assert "QC: 80 samples x 500 genes" in out
+    assert "Comparison" not in out
+    assert not (tmp_path / "tables" / "group_comparison_results.csv").exists()
+
+
+def test_run_analysis_unknown_group(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    code = cli.main(["run-analysis", "--output-dir", str(tmp_path), "--group-b", "Group_Q"])
+    assert code == cli.EXIT_FAILURE
+    assert "Group_Q" in capsys.readouterr().err
+
+
+def test_run_analysis_invalid_threshold(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    code = cli.main(["run-analysis", "--output-dir", str(tmp_path), "--fdr-threshold", "2"])
+    assert code == cli.EXIT_FAILURE
+    assert "fdr_threshold" in capsys.readouterr().err
+
+
+def test_run_analysis_invalid_inputs(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    expression = tmp_path / "expr.csv"
+    metadata = tmp_path / "meta.csv"
+    expression.write_text("sample_id,G1\nS1,1\nS2,2\n", encoding="utf-8")
+    metadata.write_text("sample_id,group\nS1,Group_A\nS2,Group_B\n", encoding="utf-8")
+    code = cli.main(
+        [
+            "run-analysis",
+            "--expression",
+            str(expression),
+            "--metadata",
+            str(metadata),
+            "--output-dir",
+            str(tmp_path / "out"),
+        ]
+    )
+    assert code == cli.EXIT_FAILURE
+    assert "group_too_small" in capsys.readouterr().err
+    assert not (tmp_path / "out").exists()

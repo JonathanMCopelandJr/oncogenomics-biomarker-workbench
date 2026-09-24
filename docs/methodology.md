@@ -2,8 +2,8 @@
 
 > RESEARCH AND EDUCATION ONLY - NOT FOR CLINICAL USE. Applies to SYNTHETIC data only.
 
-**Status:** Sections 1–2 are implemented and tested (Phase 2). Sections 3–6 are the
-planned design and are finalized when their code is implemented.
+**Status:** Sections 1–5 are implemented and tested (Phases 2–3). Section 6 (ML
+demonstration) is planned but not yet implemented.
 
 ## 1. Synthetic data (implemented: `onco_workbench.data.synthetic`)
 
@@ -45,25 +45,71 @@ missingness, metadata rows without expression data, missing batch labels, and ba
 fully confounded with group. The full rule list is in
 [`data_dictionary.md`](data_dictionary.md#validation-rules).
 
-## 3. Normalization (Phase 3)
+## 3. QC and normalization (implemented: `analysis.qc`, `analysis.normalization`)
 
-- Optional per-sample median centering before group comparison.
-- Per-gene z-scoring **only** for PCA and heatmaps.
-- These steps suit simulated continuous values only. Real RNA-seq counts need
-  count-aware methods, which are out of scope.
+**QC summaries.** These are sample and gene counts; missing values overall, per gene,
+and per sample; per-sample sum, mean, median, and SD of observed values; and samples
+per group and batch.
 
-## 4. Group comparison (Phase 3)
+**Normalization for the comparison** (`normalization.median_center_samples: true`).
+Each value becomes `x - median(sample) + median(all sample medians)`. This removes
+per-sample offsets while keeping the original scale. Missing values are ignored.
 
-For each gene: group means, mean difference (B minus A), Cohen's d (pooled SD), a Welch
-two-sample t-test using non-missing values only, and a raw p-value. Benjamini-Hochberg
-adjustment is applied across all tested genes.
+**For plots only** (PCA, correlation heatmap, top-gene heatmap):
+1. Missing values are replaced with the gene mean.
+2. Each gene is z-scored. If `zscore_genes_for_plots: false`, genes are only centered.
 
-## 5. Ranking (Phase 3)
+These transformed values are **never** used for statistical testing.
 
-`score = |d| x -log10(max(p_adj, p_floor))`. This is a documented heuristic for sorting
-results, not a statistical test.
+**PCA** uses scikit-learn's `PCA` (full SVD) on the prepared values after dropping
+zero-variance genes. It shows scores colored by group and, when present, by batch.
 
-## 6. ML demonstration (Phase 3)
+**The correlation heatmap** shows Pearson correlation between samples on the prepared
+values, for a deterministic, group-balanced subset of at most `qc.heatmap_max_samples`.
+Each group contributes its first samples by ID.
+
+These normalization steps suit simulated continuous values only. Real RNA-seq counts
+need count-aware methods, which are out of scope.
+
+## 4. Group comparison (implemented: `analysis.differential`, `analysis.multiple_testing`)
+
+Every difference is **group B minus group A** (`comparison.group_b` minus
+`comparison.group_a`). For each gene, using only observed values:
+
+| Statistic | Formula |
+|---|---|
+| `mean_a`, `mean_b` | Group means |
+| `mean_diff` | `mean_b - mean_a` |
+| `cohens_d` | `mean_diff / pooled_sd`, where `pooled_sd = sqrt(((n_a-1)·var_a + (n_b-1)·var_b) / (n_a+n_b-2))` |
+| `t_statistic` | Welch: `mean_diff / sqrt(var_a/n_a + var_b/n_b)` |
+| `df` | Welch-Satterthwaite: `(var_a/n_a + var_b/n_b)² / ((var_a/n_a)²/(n_a-1) + (var_b/n_b)²/(n_b-1))` |
+| `p_value` | Two-sided, from Student's t distribution with `df` degrees of freedom |
+| `p_adj` | Benjamini-Hochberg (statsmodels `fdr_bh`) across all tested genes |
+
+- A gene is tested only if both groups have at least
+  `comparison.min_non_missing_per_group` observed values. Untested genes get missing
+  statistics and are excluded from the BH count `m`.
+- Undefined cases (zero variance in both groups) give missing values, never infinities.
+- The test suite checks `t_statistic` and `p_value` against
+  `scipy.stats.ttest_ind(equal_var=False)`, with and without missing values. It also
+  checks the BH values against hand-computed examples.
+
+## 5. Flagging and ranking (implemented: `analysis.ranking`, `analysis.recovery`)
+
+- `meets_thresholds`: `p_adj <= comparison.fdr_threshold` **and**
+  `|cohens_d| >= comparison.effect_size_threshold`. The boundaries are inclusive.
+  Both thresholds are user-chosen display settings, not conclusions.
+- `direction`: `higher_in_b`, `lower_in_b`, `no_difference`, or `not_tested`.
+- `ranking_score = |d| × -log10(max(p_adj, ranking.p_floor))`. This is a documented
+  sorting heuristic, not a statistical test. `rank` 1 is the highest score. Ties are
+  broken by `gene_id`, and untested genes are placed last.
+- **Ground-truth workflow check** (synthetic demo data only). Flagged genes are compared
+  with the planted signal genes, counting recovered, missed, and spurious genes, plus
+  direction agreement. This verifies that the code behaves as designed. High recovery is
+  expected when planted shifts are large relative to the simulated noise. It is not
+  evidence of performance on real data.
+
+## 6. ML demonstration (planned; not yet implemented)
 
 A stratified train/test split, and a `StandardScaler` plus `LogisticRegression` pipeline
 fitted on the training data only. Cross-validation runs only when the sample size allows,
