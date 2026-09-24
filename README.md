@@ -1,5 +1,7 @@
 # oncogenomics-biomarker-workbench
 
+[![CI](https://github.com/JonathanMCopelandJr/oncogenomics-biomarker-workbench/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JonathanMCopelandJr/oncogenomics-biomarker-workbench/actions/workflows/ci.yml)
+
 > [!WARNING]
 > **RESEARCH AND EDUCATION ONLY - NOT FOR CLINICAL USE.**
 > This project is **not** a medical device, diagnostic tool, clinical decision-support
