@@ -8,14 +8,16 @@ summary, verification commands, open decisions, and a wait for explicit approval
 | Topic | Decision |
 |---|---|
 | Code license | MIT |
-| Demo-data license | CC0-1.0 (to be confirmed in Phase 2) |
+| Demo-data license | CC0-1.0, for the synthetic data files only (confirmed) |
+| Default branch | `main` (renamed from `master` before the first commit) |
+| Commits | One local commit per approved phase; never pushed |
+| Demo CSVs | Committed (≤ ~300 KB), seed-reproducible, checked by checksum test |
+| Citation | Author "Jonathan Copeland"; ORCID omitted unless a verified iD is supplied |
 | Dependency tool | pip + `pyproject.toml` + pinned `requirements*.txt` |
 | Task runner | `obw` CLI (cross-platform) + thin `Makefile` for macOS/Linux |
 | Import package / CLI | `onco_workbench` / `obw` |
 | Gene identifiers | Neutral synthetic IDs (`SYN_G0001`), never real symbols |
 
-**Pending user approval:** rename `master` to `main`; local commit per phase; commit
-the small demo CSVs (Phase 2); citation author metadata and ORCID (Phase 5).
 
 ## Phases
 

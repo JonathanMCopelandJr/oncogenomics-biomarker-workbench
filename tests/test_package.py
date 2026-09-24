@@ -49,7 +49,7 @@ def test_cli_disclaimer(capsys: pytest.CaptureFixture[str]) -> None:
     assert disclaimers.FULL_DISCLAIMER in out
 
 
-@pytest.mark.parametrize("command", ["generate-data", "validate", "run-analysis", "dashboard"])
+@pytest.mark.parametrize("command", ["run-analysis", "dashboard"])
 def test_planned_commands_fail_clearly(command: str, capsys: pytest.CaptureFixture[str]) -> None:
     assert cli.main([command]) == cli.NOT_IMPLEMENTED_EXIT_CODE
     assert "not implemented yet" in capsys.readouterr().err

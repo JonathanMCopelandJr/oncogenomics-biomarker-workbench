@@ -1,0 +1,63 @@
+{
+  "data_label": "DEMONSTRATION / SYNTHETIC DATA",
+  "description": "Fully synthetic demonstration data simulated by onco_workbench.data.synthetic.generate_synthetic_dataset. Not patient data. Gene identifiers do not correspond to real genes; group labels are not diagnoses.",
+  "disclaimer": "RESEARCH AND EDUCATION ONLY - NOT FOR CLINICAL USE. Outputs are generated from SYNTHETIC data and do not describe real patients.",
+  "files": {
+    "demo_expression.csv": {
+      "bytes": 249430,
+      "columns": 500,
+      "role": "expression",
+      "rows": 80,
+      "sha256": "d516c587cee90d54ba6b850ded7b726285e281e51c55d09a4e8ab5f8a7e36513"
+    },
+    "demo_ground_truth.csv": {
+      "bytes": 13643,
+      "columns": 4,
+      "role": "ground_truth",
+      "rows": 500,
+      "sha256": "8146de708f48950e0d99c738d2327cc17c69cb75817ec3a2d511adc62c9bbe34"
+    },
+    "demo_metadata.csv": {
+      "bytes": 2186,
+      "columns": 3,
+      "role": "metadata",
+      "rows": 80,
+      "sha256": "52650758117eb6069924ad20ec586de220fc5b259d78ae06831b844976917faf"
+    }
+  },
+  "license": {
+    "name": "Creative Commons Zero v1.0 Universal (public-domain dedication)",
+    "scope": "Applies only to the synthetic data files listed in this manifest. The source code is licensed separately under the MIT License (see LICENSE); third-party dependencies keep their own licenses.",
+    "spdx": "CC0-1.0",
+    "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+  },
+  "random_generator": "numpy.random.default_rng (PCG64)",
+  "seed": 42,
+  "synthetic_config": {
+    "baseline_mean": 8.0,
+    "baseline_sd": 1.5,
+    "batch_shift_sd": 0.3,
+    "float_decimals": 3,
+    "gene_id_prefix": "SYN_G",
+    "group_labels": [
+      "Group_A",
+      "Group_B"
+    ],
+    "group_proportions": [
+      0.5,
+      0.5
+    ],
+    "missing_fraction": 0.005,
+    "n_batches": 2,
+    "n_genes": 500,
+    "n_samples": 80,
+    "n_signal_genes_down": 20,
+    "n_signal_genes_up": 20,
+    "noise_sd": 0.5,
+    "sample_id_prefix": "SYN_S",
+    "signal_effect_range": [
+      0.8,
+      2.0
+    ]
+  }
+}

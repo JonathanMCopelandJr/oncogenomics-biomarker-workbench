@@ -3,8 +3,9 @@
 # RESEARCH AND EDUCATION ONLY - NOT FOR CLINICAL USE.
 # All values below apply to SYNTHETIC demonstration data.
 #
-# Phase 1 status: this file defines the structure and default values only.
-# It is not read by any code until the loader is added in Phase 2.
+# Loaded and validated by onco_workbench.config.load_config. The sections seed,
+# paths, synthetic, and validation are typed and checked (unknown keys are
+# rejected). Later sections are consumed from Phase 3 onward.
 # Paths are relative to the repository root and resolved with pathlib.
 
 seed: 42
@@ -17,6 +18,7 @@ paths:
   expression_file: data/synthetic/demo_expression.csv
   metadata_file: data/synthetic/demo_metadata.csv
   ground_truth_file: data/synthetic/demo_ground_truth.csv
+  manifest_file: data/synthetic/demo_manifest.json
 
 synthetic:
   n_samples: 80
@@ -33,8 +35,11 @@ synthetic:
   signal_effect_range: [0.8, 2.0]  # absolute mean shift for signal genes
   missing_fraction: 0.005        # injected missingness to exercise validation
   gene_id_prefix: SYN_G          # neutral IDs; never real gene symbols
+  sample_id_prefix: SYN_S
+  float_decimals: 3              # rounding for values written to CSV (keeps files small)
 
 validation:
+  allowed_groups: [Group_A, Group_B]  # null = accept any labels (>= 2 groups required)
   min_samples_per_group: 3
   max_missing_fraction_per_gene: 0.2
   max_missing_fraction_per_sample: 0.2

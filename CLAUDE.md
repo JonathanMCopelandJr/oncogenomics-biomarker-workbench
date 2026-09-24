@@ -63,6 +63,11 @@ If anything fails, say so and show the output. Do not claim success without runn
 | Lint | `python -m ruff check src tests` |
 | Test | `python -m pytest` |
 | CLI help | `obw --help` |
+| Regenerate committed demo data | `obw generate-data` (then review the diff; `tests/test_demo_data.py` checks checksums) |
+| Validate data | `obw validate [--expression X.csv --metadata Y.csv]` |
+
+If a change alters generator output, regenerate the demo files in the same change and
+say so explicitly. Never edit files in `data/synthetic/` by hand.
 
 ## Project phases
 

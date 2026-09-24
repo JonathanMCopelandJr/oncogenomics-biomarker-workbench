@@ -19,10 +19,25 @@ python -m pip install -r requirements-dev.txt -e .
 
 ## Determinism
 
-- The random seed lives in `config/default.yaml` (`seed`). The synthetic generator
-  (Phase 2) uses `numpy.random.default_rng(seed)` exclusively. It does not use global
-  random state.
+- The random seed lives in `config/default.yaml` (`seed: 42`). The synthetic generator
+  uses one `numpy.random.default_rng(seed)` generator in a fixed order and never uses
+  global random state.
+- CSVs are written with a fixed float format (`%.3f`), UTF-8 encoding, and LF line
+  endings. The data manifest contains no timestamps or environment details.
 - ML steps (Phase 3) receive `random_state` derived from the same seed.
+
+## Committed demo data and checksums
+
+The small synthetic demo files in `data/synthetic/` (about 267 KB in total) are committed
+so that the project works right after cloning. `demo_manifest.json` records the SHA-256
+checksum of each CSV. `tests/test_demo_data.py` regenerates the dataset from the
+configured seed and asserts that the new files match the committed ones byte for byte.
+To regenerate the files deliberately, run `obw generate-data`.
+
+**Caveat:** NumPy does not guarantee identical random streams across NumPy versions.
+The committed files were generated with the pinned NumPy for Python 3.12 (2.5.3). If a
+different NumPy version ever changes the stream, the regeneration test fails loudly
+instead of silently shipping different data.
 
 ## Cross-platform
 

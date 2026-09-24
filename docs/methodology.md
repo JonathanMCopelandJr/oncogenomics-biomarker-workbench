@@ -2,21 +2,48 @@
 
 > RESEARCH AND EDUCATION ONLY - NOT FOR CLINICAL USE. Applies to SYNTHETIC data only.
 
-**Status:** Planned design (Phase 1). Each section is finalized, with exact formulas,
-when its code is implemented and tested.
+**Status:** Sections 1–2 are implemented and tested (Phase 2). Sections 3–6 are the
+planned design and are finalized when their code is implemented.
 
-## 1. Synthetic data (Phase 2)
+## 1. Synthetic data (implemented: `onco_workbench.data.synthetic`)
 
-Continuous, log2-like values: a per-gene baseline mean, plus a small additive batch
-offset, plus Gaussian noise. A configurable set of "signal" genes receives a mean shift
-in `Group_B` (half up, half down). The planted signal genes are recorded in a separate
-ground-truth file that is used only for testing.
+For sample *i* and gene *j*:
 
-## 2. Validation (Phase 2)
+```
+x[i, j] = baseline[j] + batch_offset[batch(i), j] + noise[i, j] + true_shift[j] * B[i]
+```
 
-Checks the schema, unique sample and gene identifiers, allowed group values, numeric
-expression values, missingness thresholds, minimum group sizes, and agreement between
-matrix and metadata sample IDs. It also warns when batch is perfectly confounded with group.
+| Term | Distribution (default parameters) |
+|---|---|
+| `baseline[j]` | Normal(mean 8.0, sd 1.5), one per gene |
+| `batch_offset[b, j]` | Normal(0, 0.3), one per batch per gene |
+| `noise[i, j]` | Normal(0, 0.5), independent |
+| `B[i]` | 1 if the sample is in `Group_B`, else 0 |
+| `true_shift[j]` | 0 for most genes; for 20 genes Uniform(0.8, 2.0), for 20 genes the negative of Uniform(0.8, 2.0) |
+
+After this, each value is independently set to missing with probability 0.005, and
+values are rounded to 3 decimals.
+
+- **Groups:** exact sizes (40/40 by default), assigned in random order.
+- **Batches:** assigned in a balanced way *within* each group (20/20 per group), so
+  batch is not confounded with group.
+- **Randomness:** one `numpy.random.default_rng(seed)` generator, used in a fixed order
+  (groups, batches, baselines, batch offsets, noise, signal genes, missingness).
+- **Deliberate simplifications:** genes are independent (no correlation structure),
+  the noise is homoscedastic, and there are no counts, library sizes, or outliers.
+  These keep the ground truth unambiguous for testing and make the data unlike real
+  RNA-seq data. See `docs/limitations_and_ethics.md`.
+
+## 2. Validation (implemented: `onco_workbench.data.validation`)
+
+`validate_dataset` collects **all** findings into a report instead of stopping at the
+first one. **Errors** make analysis impossible or misleading: blank or duplicate IDs,
+non-numeric or infinite values, genes or samples with no observed values, missing or
+unexpected group labels, expression samples without metadata, and groups smaller than
+the configured minimum. **Warnings** need review but do not block analysis: high
+missingness, metadata rows without expression data, missing batch labels, and batch
+fully confounded with group. The full rule list is in
+[`data_dictionary.md`](data_dictionary.md#validation-rules).
 
 ## 3. Normalization (Phase 3)
 
