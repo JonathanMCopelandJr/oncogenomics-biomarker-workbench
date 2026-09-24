@@ -1,5 +1,7 @@
 # data/synthetic/
 
+**DEMONSTRATION / SYNTHETIC DATA — RESEARCH AND EDUCATION ONLY — NOT FOR CLINICAL USE.**
+
 > **DEMONSTRATION / SYNTHETIC DATA.** Every value in this directory is simulated by
 > this repository's generator (`onco_workbench.data.synthetic`). It is **not** patient
 > data, contains no real, restricted, or private data, and does not describe real

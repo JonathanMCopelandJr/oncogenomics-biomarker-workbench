@@ -1,5 +1,7 @@
 # Security policy
 
+**DEMONSTRATION / SYNTHETIC DATA — RESEARCH AND EDUCATION ONLY — NOT FOR CLINICAL USE.**
+
 ## Scope
 
 This is a local research and education tool that works on **synthetic** data:
