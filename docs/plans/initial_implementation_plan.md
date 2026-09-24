@@ -32,7 +32,9 @@ summary, verification commands, open decisions, and a wait for explicit approval
    in Phase 3. Their scheduling is pending the user's decision. Plotly builders
    (`viz/interactive.py`) move to Phase 4, where the dashboard uses them.
 4. **Streamlit dashboard.** Six pages on top of the package functions, disclaimers on
-   every page, an AppTest smoke test.
+   every page, an AppTest smoke test. *As delivered:* it includes the plotly builders
+   (`viz/interactive.py`). The Model Demonstration page shows the required warnings and
+   an explicit "not yet implemented" notice, because the ML demo is still unscheduled.
 5. **Quality, CI, and polish.** GitHub Actions (Ubuntu 3.11/3.12, Windows and macOS on
    3.12), community files, `CITATION.cff`, `CHANGELOG.md`, docs completion, a
    release-readiness checklist, and a final audit. No push or publish.

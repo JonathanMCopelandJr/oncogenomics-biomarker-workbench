@@ -125,3 +125,32 @@ def test_run_analysis_invalid_inputs(tmp_path: Path, capsys: pytest.CaptureFixtu
     assert code == cli.EXIT_FAILURE
     assert "group_too_small" in capsys.readouterr().err
     assert not (tmp_path / "out").exists()
+
+
+def test_dashboard_command_is_local_only() -> None:
+    command = cli.dashboard_command(8502, headless=True)
+    assert command[1:4] == ["-m", "streamlit", "run"]
+    assert command[4].endswith(str(Path("app") / "Home.py"))
+    assert command[command.index("--server.address") + 1] == "localhost"
+    assert command[command.index("--server.port") + 1] == "8502"
+    assert command[command.index("--browser.gatherUsageStats") + 1] == "false"
+    assert command[command.index("--server.headless") + 1] == "true"
+    assert "--server.headless" not in cli.dashboard_command(8501, headless=False)
+
+
+def test_dashboard_launches_streamlit(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    calls: list[tuple[list[str], Path]] = []
+
+    def fake_call(command: list[str], cwd: Path) -> int:
+        calls.append((command, cwd))
+        return 0
+
+    monkeypatch.setattr(cli.subprocess, "call", fake_call)
+    assert cli.main(["dashboard", "--port", "8600", "--headless"]) == cli.EXIT_OK
+    ((command, cwd),) = calls
+    assert cwd == cli.PROJECT_ROOT
+    assert "8600" in command
+    out = capsys.readouterr().out
+    assert DATA_LABEL in out and "http://localhost:8600" in out

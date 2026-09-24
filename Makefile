@@ -14,12 +14,12 @@ install:
 	$(PYTHON) -m pip install -r requirements-dev.txt -e .
 
 format:
-	$(PYTHON) -m ruff format src tests
-	$(PYTHON) -m ruff check --fix src tests
+	$(PYTHON) -m ruff format src tests app
+	$(PYTHON) -m ruff check --fix src tests app
 
 lint:
-	$(PYTHON) -m ruff format --check src tests
-	$(PYTHON) -m ruff check src tests
+	$(PYTHON) -m ruff format --check src tests app
+	$(PYTHON) -m ruff check src tests app
 
 test:
 	$(PYTHON) -m pytest

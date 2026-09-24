@@ -1,14 +1,14 @@
 """Command-line interface for the workbench (``obw``).
 
 This is the project's cross-platform task runner: the Makefile and README
-commands delegate here. Implemented: ``disclaimer``, ``generate-data``,
-``validate``, ``qc``, and ``run-analysis``. ``dashboard`` is registered so the
-interface is visible, but it exits with a clear message until Phase 4.
+commands delegate here. Commands: ``disclaimer``, ``generate-data``, ``validate``,
+``qc``, ``run-analysis``, and ``dashboard``.
 """
 
 from __future__ import annotations
 
 import argparse
+import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -16,20 +16,16 @@ from pathlib import Path
 import pandas as pd
 
 from onco_workbench import __version__
-from onco_workbench.config import ConfigError, WorkbenchConfig, load_config
+from onco_workbench.config import PROJECT_ROOT, ConfigError, WorkbenchConfig, load_config
 from onco_workbench.data.io import DataLoadError, load_expression, load_metadata, write_dataset
 from onco_workbench.data.synthetic import generate_synthetic_dataset
 from onco_workbench.data.validation import DataValidationError, ValidationReport, validate_dataset
 from onco_workbench.disclaimers import DATA_LABEL, FULL_DISCLAIMER, SHORT_DISCLAIMER
 
-# Subcommand name -> (help text, phase in which it will be implemented).
-_PLANNED_COMMANDS: dict[str, tuple[str, int]] = {
-    "dashboard": ("Launch the Streamlit dashboard.", 4),
-}
-
 EXIT_OK = 0
 EXIT_FAILURE = 1
-NOT_IMPLEMENTED_EXIT_CODE = 2
+
+DASHBOARD_ENTRY = Path("app") / "Home.py"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -126,8 +122,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Absolute Cohen's d display threshold.",
     )
 
-    for name, (help_text, phase) in _PLANNED_COMMANDS.items():
-        subparsers.add_parser(name, help=f"{help_text} [not yet implemented: Phase {phase}]")
+    dashboard = subparsers.add_parser(
+        "dashboard",
+        help="Launch the local Streamlit dashboard (synthetic demo data only).",
+    )
+    dashboard.add_argument(
+        "--port", type=int, default=8501, help="Local port to serve on (default: 8501)."
+    )
+    dashboard.add_argument(
+        "--headless",
+        action="store_true",
+        help="Do not open a browser window automatically.",
+    )
 
     return parser
 
@@ -270,6 +276,53 @@ def _cmd_run_analysis(args: argparse.Namespace) -> int:
     return _run_pipeline_command(args, include_comparison=True)
 
 
+def dashboard_command(port: int, *, headless: bool, root: Path = PROJECT_ROOT) -> list[str]:
+    """Build the ``streamlit run`` command for the local dashboard.
+
+    The server binds to ``localhost`` only and never sends usage statistics.
+
+    Args:
+        port: Local port.
+        headless: If True, do not open a browser.
+        root: Project root containing ``app/Home.py``.
+
+    Returns:
+        The command as a list of arguments.
+    """
+    command = [
+        sys.executable,
+        "-m",
+        "streamlit",
+        "run",
+        str(root / DASHBOARD_ENTRY),
+        "--server.address",
+        "localhost",
+        "--server.port",
+        str(port),
+        "--browser.gatherUsageStats",
+        "false",
+    ]
+    if headless:
+        command += ["--server.headless", "true"]
+    return command
+
+
+def _cmd_dashboard(args: argparse.Namespace) -> int:
+    entry = PROJECT_ROOT / DASHBOARD_ENTRY
+    if not entry.is_file():
+        print(f"obw dashboard: app entry point not found: {entry}", file=sys.stderr)
+        return EXIT_FAILURE
+    print(DATA_LABEL)
+    print(f"Starting the local dashboard at http://localhost:{args.port}  (Ctrl+C to stop)")
+    print(SHORT_DISCLAIMER)
+    try:
+        return subprocess.call(
+            dashboard_command(args.port, headless=args.headless), cwd=PROJECT_ROOT
+        )
+    except KeyboardInterrupt:
+        return EXIT_OK
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Run the CLI.
 
@@ -277,7 +330,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         argv: Arguments excluding the program name. Defaults to ``sys.argv[1:]``.
 
     Returns:
-        Process exit code: 0 on success, 1 on failure, 2 for not-yet-implemented commands.
+        Process exit code: 0 on success, 1 on failure.
     """
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -296,17 +349,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         "validate": _cmd_validate,
         "qc": _cmd_qc,
         "run-analysis": _cmd_run_analysis,
+        "dashboard": _cmd_dashboard,
     }
-    if args.command in handlers:
-        try:
-            return handlers[args.command](args)
-        except (ConfigError, DataLoadError) as exc:
-            print(f"obw {args.command}: {exc}", file=sys.stderr)
-            return EXIT_FAILURE
-
-    _, phase = _PLANNED_COMMANDS[args.command]
-    print(
-        f"obw {args.command}: not implemented yet (planned for Phase {phase}).",
-        file=sys.stderr,
-    )
-    return NOT_IMPLEMENTED_EXIT_CODE
+    try:
+        return handlers[args.command](args)
+    except (ConfigError, DataLoadError) as exc:
+        print(f"obw {args.command}: {exc}", file=sys.stderr)
+        return EXIT_FAILURE

@@ -1,0 +1,13 @@
+# Streamlit settings for local use. Read when the app is started from the repository root
+# (which `obw dashboard` does).
+
+[browser]
+# Never send usage statistics: the app runs locally without any network calls.
+gatherUsageStats = false
+
+[server]
+# Only listen on this computer. The dashboard is not meant to be exposed or deployed.
+address = "localhost"
+
+[theme]
+primaryColor = "#2a78d6"

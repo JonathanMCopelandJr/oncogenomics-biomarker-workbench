@@ -147,6 +147,38 @@ def file_sha256(path: str | Path) -> str:
     return digest.hexdigest()
 
 
+def labeled_csv_text(
+    frame: pd.DataFrame,
+    *,
+    index: bool,
+    float_decimals: int | None = None,
+    float_format: str | None = None,
+    extra_comments: Sequence[str] = (),
+) -> str:
+    """Render a CSV, preceded by the synthetic-data comment header, as text.
+
+    Args:
+        frame: Table to render.
+        index: Whether to include the DataFrame index as the first column.
+        float_decimals: Fixed number of decimals for floats (e.g. ``3`` -> ``%.3f``).
+        float_format: Explicit printf-style float format; used when ``float_decimals``
+            is not given. Defaults to ``"%.6g"``, which keeps very small p-values readable.
+        extra_comments: Additional ``#`` comment lines written after the standard header.
+
+    Returns:
+        CSV text with LF line endings.
+
+    Raises:
+        ValueError: If both ``float_decimals`` and ``float_format`` are given.
+    """
+    if float_decimals is not None and float_format is not None:
+        raise ValueError("Pass either float_decimals or float_format, not both.")
+    fmt = f"%.{float_decimals}f" if float_decimals is not None else (float_format or "%.6g")
+    header = as_comment_block("# ") + "".join(f"# {line}\n" for line in extra_comments)
+    body = frame.to_csv(index=index, float_format=fmt, lineterminator="\n", na_rep="")
+    return header + body
+
+
 def write_labeled_csv(
     frame: pd.DataFrame,
     path: str | Path,
@@ -162,27 +194,24 @@ def write_labeled_csv(
         frame: Table to write.
         path: Destination file; parent directories are created.
         index: Whether to write the DataFrame index as the first column.
-        float_decimals: Fixed number of decimals for floats (e.g. ``3`` -> ``%.3f``).
-        float_format: Explicit printf-style float format; used when ``float_decimals``
-            is not given. Defaults to ``"%.6g"``, which keeps very small p-values readable.
-        extra_comments: Additional ``#`` comment lines written after the standard header.
+        float_decimals: See :func:`labeled_csv_text`.
+        float_format: See :func:`labeled_csv_text`.
+        extra_comments: See :func:`labeled_csv_text`.
 
     Returns:
         The written path.
-
-    Raises:
-        ValueError: If both ``float_decimals`` and ``float_format`` are given.
     """
-    if float_decimals is not None and float_format is not None:
-        raise ValueError("Pass either float_decimals or float_format, not both.")
-    fmt = f"%.{float_decimals}f" if float_decimals is not None else (float_format or "%.6g")
+    text = labeled_csv_text(
+        frame,
+        index=index,
+        float_decimals=float_decimals,
+        float_format=float_format,
+        extra_comments=extra_comments,
+    )
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
-        handle.write(as_comment_block("# "))
-        for line in extra_comments:
-            handle.write(f"# {line}\n")
-        frame.to_csv(handle, index=index, float_format=fmt, lineterminator="\n", na_rep="")
+        handle.write(text)
     return path
 
 

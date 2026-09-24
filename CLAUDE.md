@@ -47,8 +47,8 @@ validated biomarker-discovery system.
 Run, and report the real outcome of:
 
 ```bash
-python -m ruff format --check src tests
-python -m ruff check src tests
+python -m ruff format --check src tests app
+python -m ruff check src tests app
 python -m pytest
 ```
 
@@ -59,14 +59,21 @@ If anything fails, say so and show the output. Do not claim success without runn
 | Task | Command |
 |---|---|
 | Install (in an activated venv) | `python -m pip install -r requirements-dev.txt -e .` |
-| Format | `python -m ruff format src tests` |
-| Lint | `python -m ruff check src tests` |
+| Format | `python -m ruff format src tests app` |
+| Lint | `python -m ruff check src tests app` |
 | Test | `python -m pytest` |
 | CLI help | `obw --help` |
 | Regenerate committed demo data | `obw generate-data` (then review the diff; `tests/test_demo_data.py` checks checksums) |
 | Validate data | `obw validate [--expression X.csv --metadata Y.csv]` |
 | QC only / full analysis | `obw qc` / `obw run-analysis [--output-dir DIR]` (writes to gitignored `outputs/`) |
 | Fast tests (skip end-to-end) | `python -m pytest -m "not e2e"` |
+| Dashboard (local only) | `obw dashboard [--port N] [--headless]` |
+
+Dashboard rules: pages in `app/` only call package functions (`onco_workbench.dashboard.*`,
+`viz.interactive`, `pipeline`). Every page must start with `page_setup()` (disclaimer
+banner) and end with `footer()`. Do not add file upload, external data sources,
+authentication, telemetry, or deployment configuration without explicit approval.
+`tests/test_app_smoke.py` runs every page with Streamlit's `AppTest`.
 
 Report and figure wording must stay neutral: say "met the display thresholds" or
 "simulated difference detected", never "biomarker", "significant finding", or any

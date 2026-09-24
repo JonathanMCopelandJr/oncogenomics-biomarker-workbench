@@ -37,7 +37,7 @@ from onco_workbench.analysis.qc import (
 )
 from onco_workbench.analysis.ranking import add_ranking, flag_results
 from onco_workbench.analysis.recovery import RecoverySummary, compare_with_ground_truth
-from onco_workbench.config import WorkbenchConfig
+from onco_workbench.config import ComparisonConfig, WorkbenchConfig
 from onco_workbench.data.io import (
     load_expression,
     load_ground_truth,
@@ -213,6 +213,23 @@ def run_comparison(
     return ComparisonResult(results=results, normalized=normalized, recovery=recovery)
 
 
+def results_header_lines(comparison: ComparisonConfig) -> list[str]:
+    """Comment lines stating the comparison direction and thresholds for results tables.
+
+    Args:
+        comparison: Comparison settings used to produce the results.
+
+    Returns:
+        Lines to pass as ``extra_comments`` when writing a results CSV.
+    """
+    c = comparison
+    return [
+        f"Comparison: {c.group_b} (b) vs {c.group_a} (a); mean_diff and cohens_d are b minus a.",
+        f"meets_thresholds: p_adj <= {c.fdr_threshold:g} and |cohens_d| >= "
+        f"{c.effect_size_threshold:g} (display thresholds, not conclusions).",
+    ]
+
+
 def _normalization_steps(config: WorkbenchConfig, include_comparison: bool) -> list[str]:
     steps = []
     if include_comparison:
@@ -291,12 +308,7 @@ def run_pipeline(
         "pca_scores": (qc.pca.scores, []),
     }
     if comparison is not None:
-        header = [
-            f"Comparison: {c.group_b} (b) vs {c.group_a} (a); "
-            "mean_diff and cohens_d are b minus a.",
-            f"meets_thresholds: p_adj <= {c.fdr_threshold:g} and |cohens_d| >= "
-            f"{c.effect_size_threshold:g} (display thresholds, not conclusions).",
-        ]
+        header = results_header_lines(c)
         tables["group_comparison_results"] = (comparison.results, header)
         top = comparison.results[comparison.results["rank"].notna()].nsmallest(
             config.ranking.top_n, "rank"
