@@ -2,8 +2,8 @@
 
 > RESEARCH AND EDUCATION ONLY - NOT FOR CLINICAL USE. Applies to SYNTHETIC data only.
 
-**Status:** Sections 1–5 are implemented and tested (Phases 2–3). Section 6 (ML
-demonstration) is planned but not yet implemented.
+**Status:** Sections 1–6 are implemented and tested. Section 6 (the ML demonstration)
+is an optional, separate workflow (`obw ml-demo`).
 
 ## 1. Synthetic data (implemented: `onco_workbench.data.synthetic`)
 
@@ -109,8 +109,42 @@ Every difference is **group B minus group A** (`comparison.group_b` minus
   expected when planted shifts are large relative to the simulated noise. It is not
   evidence of performance on real data.
 
-## 6. ML demonstration (planned; not yet implemented)
+## 6. Optional ML demonstration (implemented: `ml.classifier_demo`; `obw ml-demo`)
 
-A stratified train/test split, and a `StandardScaler` plus `LogisticRegression` pipeline
-fitted on the training data only. Cross-validation runs only when the sample size allows,
-and a label-permutation sanity check is included. The demonstration is educational only.
+> **Synthetic-data educational example only. NOT a clinical prediction model.** It
+> distinguishes two arbitrary synthetic groups and predicts nothing about any person.
+
+This is an educational demonstration of leakage-safe evaluation on synthetic data. All
+preprocessing (mean imputation, standardization) is inside a scikit-learn `Pipeline`
+fitted on the training split only. Cross-validation, when eligible, refits the whole
+pipeline within each training fold and never uses the test set. No feature selection is
+performed.
+
+| Step | Detail (defaults from `config/default.yaml`, section `ml_demo`) |
+|---|---|
+| Classes | Positive class (1) = `comparison.group_b` (`Group_B`). Negative class (0) = `comparison.group_a` (`Group_A`). |
+| Features | All 500 **raw** synthetic gene values. No feature selection, and nothing from the group comparison or ranking is used (no double-dipping). |
+| Size check | Every class needs at least `min_samples_per_class` (10) samples, and at least 1 test and 2 training samples after the split. Otherwise `InsufficientDataError` is raised with the class name and count. |
+| Split | `train_test_split(stratify=y, test_size=0.25, random_state=seed)`, giving 60 training samples (30 per class) and 20 test samples (10 per class) |
+| Pipeline | `SimpleImputer(mean)`, then `StandardScaler`, then `LogisticRegression(C=1.0, max_iter=1000)`, fitted on training rows only. Test rows only pass through the already fitted pipeline. |
+| Test metrics | Accuracy, and precision, recall, and F1 for the positive class, computed from the confusion counts. A metric whose denominator is zero is reported as **undefined** with a note, never as 0. ROC-AUC is reported only when the test set contains both classes. The confusion matrix has rows for the true group and columns for the predicted group. |
+| Cross-validation | Runs only if every **training** class has at least `min_train_per_class_for_cv` (25) samples, which must be at least `cv_folds` (5). It uses `StratifiedKFold(5, shuffle=True, random_state=seed)` on the training split only and reports fold accuracy and ROC-AUC. Otherwise it is skipped and the reason is shown. |
+| Permuted-label baseline | `n_label_permutations` (20) refits on training labels shuffled with `numpy.random.default_rng(seed)`, each scored on the unchanged test set. It is a **sanity-check baseline, not a biological benchmark**: it shows the scores a model gets when labels carry no information. |
+
+**Why the ML preprocessing is separate from median centering.** The group comparison
+(section 4) median-centers each sample. The ML pipeline instead uses raw values and
+learns its own imputation and scaling from the training split. Keeping them separate
+means every ML transformation is fitted inside the leakage-safe pipeline, and changing
+the exploratory analysis never silently changes the model (or the reverse). The
+baseline analysis and its preprocessing are unchanged by the ML demonstration.
+
+**Tests** (`tests/test_ml_demo.py`) check:
+
+- deterministic, stratified, disjoint splitting seeded from the configuration
+- that the imputer and scaler statistics equal the training-set statistics
+- **invariance**: adding +1000 to every test value (and blanking some) leaves the fitted
+  imputer, scaler, model coefficients, and CV scores unchanged
+- that the CV folds are built from training rows only
+- metric values against hand counts and scikit-learn, plus the undefined-metric cases
+- error handling for missing or too-small classes
+- a deterministic permutation baseline

@@ -33,6 +33,11 @@ st.markdown(
    p, {r.p_floor:g})) only sorts the table.
 7. **Check against the planted answer.** On the demo data, flagged genes are compared
    with the genes that were deliberately shifted. This checks the code, not biology.
+8. **Optional ML demonstration** (separate from steps 1-7). A logistic-regression
+   classifier is trained on a stratified training split of the synthetic groups and
+   evaluated on held-out samples. All preprocessing happens inside a pipeline fitted on
+   training data only. It is compared with a permuted-label baseline. It is an
+   educational example, not a clinical prediction model.
 
 Full formulas are in `docs/methodology.md`, and field definitions are in
 `docs/data_dictionary.md`.

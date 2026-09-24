@@ -35,8 +35,10 @@ def test_default_config_loads_with_expected_values(repo_root: Path) -> None:
     assert config.comparison.fdr_threshold == 0.05
     assert config.ranking.top_n == 20
     assert config.figures.format == "png"
-    assert "ml_demo" in config.sections  # sections for unbuilt features are preserved
-    assert "comparison" not in config.sections
+    assert config.ml_demo.test_size == 0.25
+    assert config.ml_demo.min_samples_per_class == 10
+    assert config.ml_demo.n_label_permutations == 20
+    assert "ml_demo" not in config.sections and "comparison" not in config.sections
 
 
 def test_with_comparison_revalidates() -> None:
@@ -112,6 +114,16 @@ def test_invalid_yaml_raises(tmp_path: Path) -> None:
         (lambda raw: raw["figures"].update(format="gif"), "format"),
         (lambda raw: raw["figures"].update(dpi=5), "dpi"),
         (lambda raw: raw.pop("comparison"), "section 'comparison'"),
+        (lambda raw: raw.pop("ml_demo"), "section 'ml_demo'"),
+        (lambda raw: raw["ml_demo"].update(test_size=1.0), "test_size"),
+        (lambda raw: raw["ml_demo"].update(cv_folds=1), "cv_folds"),
+        (lambda raw: raw["ml_demo"].update(min_train_per_class_for_cv=3), ">= cv_folds"),
+        (lambda raw: raw["ml_demo"].update(logistic_regression_c=0), "logistic_regression_c"),
+        (lambda raw: raw["ml_demo"].update(n_label_permutations=-1), "n_label_permutations"),
+        (lambda raw: raw["ml_demo"].update(min_samples_per_class=2), "min_samples_per_class"),
+        (lambda raw: raw["ml_demo"].update(enabled="yes"), "true or false"),
+        (lambda raw: raw["ml_demo"].update(max_iter=10), "max_iter"),
+        (lambda raw: raw["ml_demo"].update(seed=1), "unknown key"),
     ],
 )
 def test_invalid_values_raise_clear_errors(tmp_path: Path, mutate: Mutator, message: str) -> None:

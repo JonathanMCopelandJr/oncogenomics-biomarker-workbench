@@ -68,6 +68,19 @@ If anything fails, say so and show the output. Do not claim success without runn
 | QC only / full analysis | `obw qc` / `obw run-analysis [--output-dir DIR]` (writes to gitignored `outputs/`) |
 | Fast tests (skip end-to-end) | `python -m pytest -m "not e2e"` |
 | Dashboard (local only) | `obw dashboard [--port N] [--headless]` |
+| Optional ML demonstration | `obw ml-demo [--output-dir DIR]` (writes to gitignored `outputs/ml_demo/`) |
+
+ML demonstration rules (`src/onco_workbench/ml/classifier_demo.py`):
+
+- **Keep it leakage-safe.** Every learned transformation stays inside the scikit-learn
+  `Pipeline` fitted on the training split. Never select features, impute, or scale using
+  the full dataset or the test set. The invariance tests in `tests/test_ml_demo.py` must
+  keep passing.
+- The positive class is `comparison.group_b`, and it must be stated in every output.
+- Keep the wording synthetic and generic. Never describe the model with cancer, disease,
+  patient, diagnostic, prognostic, or clinical-performance language, and never write
+  model weights to disk.
+- The ML demo stays separate from `run-analysis` and the group-comparison preprocessing.
 
 Dashboard rules: pages in `app/` only call package functions (`onco_workbench.dashboard.*`,
 `viz.interactive`, `pipeline`). Every page must start with `page_setup()` (disclaimer

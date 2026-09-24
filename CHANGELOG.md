@@ -38,8 +38,22 @@ planned version.
   Python 3.11/3.12, Windows, and macOS), issue and pull-request templates,
   `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `CITATION.cff`,
   a release-readiness checklist, and repository hygiene tests.
+- **Optional educational ML demonstration** (synthetic data only, NOT a clinical
+  prediction model):
+  - `onco_workbench.ml.classifier_demo` and a new `obw ml-demo` command writing labeled
+    outputs to `outputs/ml_demo/`.
+  - A stratified, seeded train/test split, and an imputer → scaler → logistic-regression
+    `Pipeline` fitted on training data only.
+  - Cross-validation that runs only when training class sizes meet
+    `ml_demo.min_train_per_class_for_cv`.
+  - Test-set metrics with explicit "undefined" handling, and a confusion matrix.
+  - A deterministic permuted-label sanity-check baseline.
+  - A typed `ml_demo` configuration section (new key `min_samples_per_class`).
+  - The dashboard's Model Demonstration page now shows the results with the limitations.
+  - Tests for determinism, no preprocessing leakage, metric behavior, and insufficient
+    class counts.
+  - `obw run-analysis` and the group-comparison analysis are unchanged.
 
 ### Not yet implemented
 
-- The educational machine-learning demonstration and the walkthrough notebook. The
-  dashboard's Model Demonstration page states this explicitly.
+- The walkthrough notebook (planned as a separate, later deliverable).

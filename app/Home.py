@@ -42,7 +42,8 @@ st.markdown(
 - **Quality Control**: validation results, PCA, expression distributions, missingness.
 - **Group Comparison**: choose two groups and display thresholds, then explore the
   volcano-style plot, filter and sort the results table, and download a labeled CSV.
-- **Model Demonstration**: planned educational example; not yet implemented.
+- **Model Demonstration**: optional educational classifier on the synthetic groups,
+  showing leakage-safe evaluation. NOT a clinical prediction model.
 - **Methods and Limitations**: plain-language methods, limitations, data provenance,
   and reproducibility details.
 """

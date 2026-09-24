@@ -18,6 +18,7 @@ from onco_workbench.dashboard.data import DemoData, compare, load_demo_data
 from onco_workbench.data.io import DataLoadError
 from onco_workbench.data.validation import DataValidationError
 from onco_workbench.disclaimers import DATA_LABEL, FULL_DISCLAIMER, SHORT_DISCLAIMER
+from onco_workbench.ml.classifier_demo import MLDemoResult, run_ml_demo
 from onco_workbench.pipeline import ComparisonResult, QCResult, run_qc
 
 APP_NAME = "Oncogenomics Biomarker Workbench"
@@ -102,3 +103,14 @@ def get_comparison(
         fdr_threshold=fdr_threshold,
         effect_size_threshold=effect_size_threshold,
     )
+
+
+@st.cache_data(show_spinner="Running the educational ML demonstration on synthetic data...")
+def get_ml_demo() -> MLDemoResult:
+    """Run the optional ML demonstration on the demo data once (cached).
+
+    Raises:
+        InsufficientDataError: If the synthetic classes are too small.
+    """
+    data = get_demo_data()
+    return run_ml_demo(data.expression, data.metadata, data.config)

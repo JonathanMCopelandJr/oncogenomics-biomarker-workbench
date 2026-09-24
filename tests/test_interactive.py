@@ -78,3 +78,18 @@ def test_expression_box_covers_all_observed_values(small_dataset: SyntheticDatas
 def test_top_genes_order(results: pd.DataFrame) -> None:
     fig = interactive.top_genes_figure(results, group_a="Group_A", group_b="Group_B", top_n=3)
     assert list(fig.data[0].y) == results.nsmallest(3, "rank")["gene_id"].tolist()
+
+
+def test_confusion_matrix_figure() -> None:
+    confusion = pd.DataFrame(
+        [[9, 1], [2, 8]],
+        index=["true: Group_A", "true: Group_B"],
+        columns=["predicted: Group_A", "predicted: Group_B"],
+    )
+    fig = interactive.confusion_matrix_figure(confusion, positive_label="Group_B")
+    assert _is_labeled(fig)
+    assert list(fig.data[0].x) == ["Group_A", "Group_B"]
+    assert fig.data[0].z.tolist() == [[9, 1], [2, 8]]
+    assert "positive class: Group_B" in fig.layout.title.text
+    cell_text = sorted(a.text for a in fig.layout.annotations if a.text.startswith("<b>"))
+    assert cell_text == ["<b>1</b>", "<b>2</b>", "<b>8</b>", "<b>9</b>"]

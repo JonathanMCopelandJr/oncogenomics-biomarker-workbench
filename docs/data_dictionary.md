@@ -115,3 +115,45 @@ Sorted by `rank`. The top table keeps the first `ranking.top_n` rows.
 | `figures/*.png` | PCA, per-sample distributions, per-sample totals, sample correlation, volcano-style plot, top-gene bar chart, top-gene heatmap. Each is labeled DEMONSTRATION / SYNTHETIC. |
 | `report.md` | Markdown summary report with the disclaimer, QC, methods, results, ground-truth check, and interpretation limits |
 | `run_manifest.json` | Timestamp (UTC), versions, git commit, config checksum, parameters, and SHA-256 checksums of inputs and outputs |
+
+## Optional ML demonstration outputs (`obw ml-demo` → `outputs/ml_demo/`)
+
+These come from a synthetic-data educational example, **not a clinical prediction model**.
+Every file states the class mapping: **positive class (1) = `comparison.group_b`**
+(default `Group_B`) and **negative class (0) = `comparison.group_a`** (default `Group_A`).
+No model weights are written.
+
+| File | Contents |
+|---|---|
+| `ml_demo_results.json` | `data_label`, `disclaimer`, `statements`, `headline_warning`, and `limitations`, plus the sections listed below |
+| `confusion_matrix.csv` | Two rows (`true: <group>`) by two columns (`predicted: <group>`) of synthetic-sample counts. It starts with the DEMONSTRATION / SYNTHETIC comment lines and a class-mapping line. |
+| `test_predictions.csv` | One row per held-out **synthetic** sample, with the same comment header |
+| `summary.md` | Human-readable summary: warnings, setup, metrics, confusion matrix, CV, the permuted-label comparison, and limitations |
+
+Every ML output (JSON `statements`, both CSV headers, `summary.md`) and the CLI output
+carry these four statements:
+
+- `Positive synthetic class: <group_b> (comparison.group_b)`
+- `Dataset: fully synthetic transcriptomics-style demonstration data`
+- `Purpose: educational machine-learning workflow demonstration`
+- `Not for clinical, diagnostic, prognostic, or treatment use`
+
+`ml_demo_results.json` sections:
+
+| Section | Contents |
+|---|---|
+| `classes` | `positive_class_1`, `negative_class_0`, and a text description |
+| `setup` | `seed`, `n_samples`, `n_features`, pipeline description, `test_size`, `logistic_regression_c`, and train and test class counts |
+| `test_metrics` | `accuracy`, `precision`, `recall`, `f1`, `roc_auc` (each `null` when undefined), `notes`, and `confusion_matrix` |
+| `cross_validation` | `ran`, `reason`, `n_folds`, `fold_sizes`, fold `accuracies` and `roc_aucs`, and summary means and SD |
+| `permuted_label_baseline` | `purpose`, `ran`, `reason`, `n_permutations`, per-run `accuracies` and `roc_aucs`, and summary means and SD |
+| `comparison` | A plain-language comparison of the correctly labeled run with the permuted-label baseline |
+
+`test_predictions.csv` fields:
+
+| Field | Description |
+|---|---|
+| `sample_id` | Synthetic sample identifier (test split only) |
+| `true_group`, `predicted_group` | Synthetic group labels |
+| `score_<group_b>` | Model probability for the positive class (for example `score_Group_B`) |
+| `correct` | Whether the predicted group equals the true group |

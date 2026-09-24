@@ -92,9 +92,18 @@ def test_data_explorer_search_no_match() -> None:
     assert any("No synthetic gene IDs match" in i.value for i in app.info)
 
 
-def test_model_page_makes_no_metric_claims() -> None:
+def test_model_page_shows_labeled_results_and_limitations() -> None:
     app = _run("pages/4_Model_Demonstration.py")
+    assert not app.exception
     text = _all_text(app)
     assert "NOT a clinical prediction model" in text
-    assert "Not yet implemented" in text
-    assert len(app.metric) == 0
+    assert "Not yet implemented" not in text
+    assert "positive class **Group_B**" in text
+    assert "Fitted on the training split only" in text
+    assert "sanity check, not a biological benchmark" in text
+    assert "High scores are expected by construction" in text
+    assert "Positive synthetic class: Group_B" in text
+    assert "Not for clinical, diagnostic, prognostic, or treatment use" in text
+    labels = {m.label for m in app.metric}
+    assert {"Accuracy", "Precision (Group_B)", "ROC-AUC"} <= labels
+    assert any("shuffled labels" in label for label in labels)

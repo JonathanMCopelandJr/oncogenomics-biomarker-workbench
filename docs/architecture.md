@@ -16,7 +16,7 @@
 
 | Module | Responsibility | Phase |
 |---|---|---|
-| `cli.py` | `obw` command and cross-platform task runner (`disclaimer`, `generate-data`, `validate`, `qc`, `run-analysis`, `dashboard`) | 1–4 (done) |
+| `cli.py` | `obw` command and cross-platform task runner (`disclaimer`, `generate-data`, `validate`, `qc`, `run-analysis`, `ml-demo`, `dashboard`) | done |
 | `disclaimers.py` | Nonclinical disclaimer text and data label | 1 (done) |
 | `config.py` | Load and validate YAML into typed, frozen dataclasses; resolve paths | 2–3 (done) |
 | `data/synthetic.py` | Seeded synthetic data generator | 2 (done) |
@@ -35,7 +35,7 @@
 | `viz/interactive.py` | plotly figures for the dashboard (same palette, hover tooltips, labeled) | 4 (done) |
 | `dashboard/data.py` | Streamlit-free dashboard helpers: load demo data, compare, filter, labeled CSV download | 4 (done) |
 | `dashboard/components.py` | Streamlit banner, page setup, footer, cached loaders | 4 (done) |
-| `ml/classifier_demo.py` | Leakage-safe educational classifier | planned |
+| `ml/classifier_demo.py` | Optional educational classifier (synthetic only, NOT clinical). Stratified seeded split; imputer, scaler, and logistic-regression `Pipeline` fitted on training data only; gated CV; metrics; permuted-label baseline; labeled outputs. Independent of `pipeline.py` and `run-analysis` | done (optional) |
 
 ## Dashboard
 

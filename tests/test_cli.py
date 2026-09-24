@@ -154,3 +154,39 @@ def test_dashboard_launches_streamlit(
     assert "8600" in command
     out = capsys.readouterr().out
     assert DATA_LABEL in out and "http://localhost:8600" in out
+
+
+def test_ml_demo_command(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    assert cli.main(["ml-demo", "--output-dir", str(tmp_path)]) == cli.EXIT_OK
+    out = capsys.readouterr().out
+    assert DATA_LABEL in out
+    assert "NOT a clinical prediction model" in out
+    assert "positive class (1) = Group_B" in out
+    assert "Permuted-label baseline" in out
+    assert "expected by construction" in out
+    for statement in (
+        "Positive synthetic class: Group_B",
+        "Dataset: fully synthetic transcriptomics-style demonstration data",
+        "Purpose: educational machine-learning workflow demonstration",
+        "Not for clinical, diagnostic, prognostic, or treatment use",
+    ):
+        assert statement in out
+    names = {p.name for p in tmp_path.iterdir()}
+    assert names == {
+        "ml_demo_results.json",
+        "confusion_matrix.csv",
+        "test_predictions.csv",
+        "summary.md",
+    }
+
+
+def test_ml_demo_disabled(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    config_dir = tmp_path / "config"
+    config_dir.mkdir()
+    text = (cli.PROJECT_ROOT / "config" / "default.yaml").read_text(encoding="utf-8")
+    custom = config_dir / "custom.yaml"
+    custom.write_text(text.replace("  enabled: true", "  enabled: false"), encoding="utf-8")
+    code = cli.main(["ml-demo", "--config", str(custom), "--output-dir", str(tmp_path / "out")])
+    assert code == cli.EXIT_FAILURE
+    assert "disabled" in capsys.readouterr().err
+    assert not (tmp_path / "out").exists()

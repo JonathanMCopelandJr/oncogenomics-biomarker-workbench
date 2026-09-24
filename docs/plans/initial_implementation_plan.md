@@ -41,6 +41,11 @@ summary, verification commands, open decisions, and a wait for explicit approval
    the items above plus repository hygiene tests, a clean-environment reproduction, a
    package-build check, and strict one-off lint audits. The results are in
    `docs/release_checklist.md`.
+6. **Optional ML demonstration** (approved after Phase 5, before any push or release).
+   `ml/classifier_demo.py`, `obw ml-demo`, and the real Model Demonstration page, with
+   leakage, determinism, metric, and insufficient-data tests. `run-analysis` and the
+   group-comparison preprocessing are unchanged. The walkthrough notebook is explicitly
+   excluded and is planned as a later deliverable.
 
 ## Dependencies
 

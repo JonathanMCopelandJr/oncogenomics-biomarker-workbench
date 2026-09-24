@@ -10,12 +10,12 @@ GitHub-settings change has been made.
 
 | Check | Status | Evidence |
 |---|---|---|
-| `ruff format --check src tests app` | Done | 54 files already formatted |
+| `ruff format --check src tests app` | Done | 56 files already formatted (after the ML demonstration was added) |
 | `ruff check src tests app` | Done | All checks passed |
 | Strict one-off audit: `ruff --select ANN,S,PERF,RUF` | Done | 10 findings. 1 fixed (`RUF046`). 9 reviewed and accepted: `ANN401` on the YAML parsers, which take untrusted `Any` values and check them at runtime; `S603`/`S607` on the fixed-argument, no-shell `streamlit` and `git` subprocess calls |
 | No `TODO`/`FIXME`, no stray `print` outside the CLI | Done | grep: none |
 | Public functions typed and documented | Done | ruff `D` (Google style) enforced; `ANN` audit shows no missing annotations |
-| Full test suite | Done | 261 passed. Line/branch coverage 96% |
+| Full test suite | Done | 300 passed, including 26 ML-demo tests. Line/branch coverage 96% (after the ML demonstration was added) |
 | `pip check` | Done | No broken requirements |
 
 ## Reproducibility
@@ -23,7 +23,7 @@ GitHub-settings change has been made.
 | Check | Status | Evidence |
 |---|---|---|
 | Fresh environment from pinned requirements (a new venv; files copied as a fresh clone would be) | Done | `pip install -r requirements-dev.txt -e .` succeeded with exactly the pinned versions. `pip check` clean. (The venv had to be in a short path because of Windows `WinError 206`; the README now documents this) |
-| Lint and tests in the fresh environment | Done | 54 files formatted, lint clean, 261 passed |
+| Lint and tests in the fresh environment | Done (Phase 5 audit, before the ML demo) | 54 files formatted, lint clean, 261 passed. **Not re-run after the ML demonstration**; recommended before release |
 | Demo data regenerate byte-identically from the seed | Done | All 4 files (3 CSVs and the manifest) have SHA-256 identical to the committed files |
 | Analysis tables identical across environments | Done | All 5 CSV tables from `obw run-analysis` are byte-identical between the development and fresh environments. Both runs: 40/40 planted genes recovered, 0 unplanted genes flagged (expected by construction) |
 | Analysis tables identical across repeated runs | Done | Phase 3: all 5 CSV tables byte-identical |
@@ -50,14 +50,15 @@ GitHub-settings change has been made.
 |---|---|---|
 | Disclaimer on README, docs, CSV exports, figures, report, manifest, and every dashboard page | Done | Tests in `test_package`, `test_io`, `test_viz_static`, `test_interactive`, `test_reporting`, `test_app_smoke`, `test_repository` |
 | No real gene symbols; neutral synthetic IDs only | Done | `test_synthetic.py` |
-| No clinical, biomarker, or performance claims; ML page shows no invented metrics | Done | `test_app_smoke.py::test_model_page_makes_no_metric_claims` |
+| No clinical, biomarker, or performance claims. ML outputs and page carry the "NOT a clinical prediction model" warning, the positive-class statement, and the limitations | Done | `test_ml_demo.py::test_outputs_are_labeled_and_contain_no_model_weights`, `test_app_smoke.py::test_model_page_shows_labeled_results_and_limitations`, `test_cli.py::test_ml_demo_command` |
+| ML demonstration is leakage-safe (preprocessing fitted on the training split only; test-set changes do not affect the fit or CV) | Done | `test_ml_demo.py` leakage and invariance tests |
 | No external data, downloads, credentials, authentication, or deployment | Done | Code review. Dashboard bound to `localhost` |
 
 ## Owner actions before a public release
 
 1. **Push and confirm CI passes** on all four matrix jobs, including Python 3.11.
-2. **Decide on the ML demonstration and walkthrough notebook**: build them, or keep them
-   documented as planned. The README, CHANGELOG, and dashboard currently say "not implemented".
+2. **ML demonstration:** implemented as an optional workflow (`obw ml-demo` and the
+   dashboard page). The **walkthrough notebook** remains a separate, later deliverable.
 3. **Add dashboard screenshots** to `docs/assets/screenshots/` and link them from the
    README. They weren't captured in the audit because no browser was available.
 4. **Add the repository URL** to `CITATION.cff` (`repository-code`) and, if wanted, a CI

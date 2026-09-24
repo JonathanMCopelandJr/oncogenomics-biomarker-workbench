@@ -324,3 +324,52 @@ def top_genes_figure(results: pd.DataFrame, *, group_a: str, group_b: str, top_n
     return _label(
         fig, f"Top {len(top)} genes by ranking score", height=max(320, 22 * len(top) + 140)
     )
+
+
+# Sequential single-hue blue ramp (light = few, dark = many) for count matrices.
+_COUNT_SCALE = [[0.0, "#cde2fb"], [0.5, "#5598e7"], [1.0, "#184f95"]]
+
+
+def confusion_matrix_figure(confusion: pd.DataFrame, *, positive_label: str) -> go.Figure:
+    """Annotated confusion-matrix heatmap for the synthetic ML demonstration.
+
+    Args:
+        confusion: 2x2 table (rows ``true: <group>``, columns ``predicted: <group>``).
+        positive_label: The positive-class group label (stated in the title).
+
+    Returns:
+        The figure.
+    """
+    counts = confusion.to_numpy()
+    rows = [str(r).removeprefix("true: ") for r in confusion.index]
+    cols = [str(c).removeprefix("predicted: ") for c in confusion.columns]
+    peak = max(int(counts.max()), 1)
+    fig = go.Figure(
+        go.Heatmap(
+            z=counts,
+            x=cols,
+            y=rows,
+            zmin=0,
+            zmax=peak,
+            colorscale=_COUNT_SCALE,
+            showscale=False,
+            hovertemplate="true: %{y}<br>predicted: %{x}<br>synthetic samples: %{z}<extra></extra>",
+        )
+    )
+    for i, row in enumerate(rows):
+        for j, col in enumerate(cols):
+            value = int(counts[i, j])
+            fig.add_annotation(
+                x=col,
+                y=row,
+                text=f"<b>{value}</b>",
+                showarrow=False,
+                font={"size": 18, "color": "white" if value > peak / 2 else "#0b0b0b"},
+            )
+    fig.update_xaxes(title="Predicted group", side="bottom")
+    fig.update_yaxes(title="True group", autorange="reversed")
+    return _label(
+        fig,
+        f"Confusion matrix, held-out synthetic test set (positive class: {positive_label})",
+        height=380,
+    )

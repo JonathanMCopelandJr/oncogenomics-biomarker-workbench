@@ -37,9 +37,23 @@ into the code.
   figures, the Markdown report, the run manifest, and every dashboard page.
 - Gene IDs are neutral (`SYN_G0001`) so no output can suggest a real gene. The group
   labels are arbitrary.
-- Tests check that every dashboard page shows the banner and footer. The Model
-  Demonstration page declares that it is not yet implemented, instead of showing
-  invented metrics.
+- Tests check that every dashboard page shows the banner and footer. The ML
+  demonstration states "NOT a clinical prediction model" and the positive class in every
+  output, and defines its limitations text once so every surface uses the same wording.
+
+### 3b. Leakage-safe ML evaluation (optional demonstration)
+
+- The imputer, scaler, and logistic-regression `Pipeline` is fitted on a stratified,
+  seeded training split only. There is no feature selection on the full data.
+- An invariance test adds +1000 to every test value (and blanks some). The fitted
+  imputer, scaler, coefficients, and CV scores stay exactly the same. Another test
+  checks that CV folds are drawn from training rows only.
+- Metrics are computed from confusion counts. Undefined metrics are reported as undefined,
+  never as 0.
+- A seeded permuted-label baseline gives the chance-level comparison. On the synthetic
+  demo, the correctly labeled model scored 1.00 test accuracy against a permuted-label
+  mean of 0.48. That gap is **expected by construction** and is a sanity check, not a
+  performance claim.
 
 ### 4. Data validation that helps the user
 
@@ -71,5 +85,7 @@ into the code.
 
 - The statistics are a teaching simplification. They are not appropriate for real
   RNA-seq counts.
-- The ML demonstration is planned but not built.
+- The ML demonstration's near-perfect scores are expected on this easy synthetic data.
+  Its test set has only 20 samples. It demonstrates practice, not performance.
+- The walkthrough notebook is not built yet.
 - Python 3.11 is verified by CI only. The local audit used Python 3.12.

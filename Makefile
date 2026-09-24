@@ -4,10 +4,10 @@
 
 PYTHON ?= python
 
-.PHONY: help install format lint test coverage generate-demo-data validate qc run-analysis run-dashboard check
+.PHONY: help install format lint test coverage generate-demo-data validate qc run-analysis ml-demo run-dashboard check
 
 help:
-	@echo "Targets: install format lint test coverage generate-demo-data validate qc run-analysis run-dashboard check"
+	@echo "Targets: install format lint test coverage generate-demo-data validate qc run-analysis ml-demo run-dashboard check"
 
 install:
 	$(PYTHON) -m pip install --upgrade pip
@@ -35,6 +35,9 @@ validate:
 
 qc:
 	obw qc
+
+ml-demo:
+	obw ml-demo
 
 run-analysis:
 	obw run-analysis

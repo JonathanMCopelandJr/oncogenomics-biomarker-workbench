@@ -2,7 +2,8 @@
 
 This is the project's cross-platform task runner: the Makefile and README
 commands delegate here. Commands: ``disclaimer``, ``generate-data``, ``validate``,
-``qc``, ``run-analysis``, and ``dashboard``.
+``qc``, ``run-analysis``, ``ml-demo`` (optional educational ML demonstration), and
+``dashboard``.
 """
 
 from __future__ import annotations
@@ -120,6 +121,19 @@ def build_parser() -> argparse.ArgumentParser:
         type=float,
         default=None,
         help="Absolute Cohen's d display threshold.",
+    )
+
+    ml_demo = subparsers.add_parser(
+        "ml-demo",
+        parents=[common],
+        help="Optional educational ML demonstration on the synthetic demo data "
+        "(NOT a clinical prediction model).",
+    )
+    ml_demo.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="Directory for the labeled ML outputs (default: outputs/ml_demo).",
     )
 
     dashboard = subparsers.add_parser(
@@ -276,6 +290,67 @@ def _cmd_run_analysis(args: argparse.Namespace) -> int:
     return _run_pipeline_command(args, include_comparison=True)
 
 
+def _cmd_ml_demo(args: argparse.Namespace) -> int:
+    # Imported lazily so other commands do not pay for scikit-learn model imports.
+    from onco_workbench.ml.classifier_demo import (
+        HEADLINE_WARNING,
+        OUTPUT_SUBDIR,
+        InsufficientDataError,
+        output_statements,
+        run_ml_demo,
+        write_ml_demo_outputs,
+    )
+    from onco_workbench.pipeline import load_and_validate
+
+    config = load_config(args.config)
+    if not config.ml_demo.enabled:
+        print("obw ml-demo: disabled in configuration (ml_demo.enabled: false).", file=sys.stderr)
+        return EXIT_FAILURE
+    try:
+        expression, metadata, _ = load_and_validate(
+            config, config.paths.expression_file, config.paths.metadata_file
+        )
+        result = run_ml_demo(expression, metadata, config)
+    except DataValidationError as exc:
+        print(exc.report.summary(), file=sys.stderr)
+        return EXIT_FAILURE
+    except InsufficientDataError as exc:
+        print(f"obw ml-demo: {exc}", file=sys.stderr)
+        return EXIT_FAILURE
+
+    output_dir = args.output_dir or config.paths.outputs_dir / OUTPUT_SUBDIR
+    files = write_ml_demo_outputs(result, output_dir)
+
+    def fmt(value: float | None) -> str:
+        return "undefined" if value is None else f"{value:.3f}"
+
+    m = result.metrics
+    print(DATA_LABEL)
+    print(HEADLINE_WARNING)
+    for statement in output_statements(result.labels.positive):
+        print(statement)
+    print(f"Classes: {result.labels.describe()}.")
+    print(
+        f"Split (seed {result.seed}): train {result.train_class_counts}, "
+        f"test {result.test_class_counts}; {result.n_features} synthetic genes, no selection."
+    )
+    print(
+        f"Test set (positive class {result.labels.positive}): accuracy {fmt(m.accuracy)}, "
+        f"precision {fmt(m.precision)}, recall {fmt(m.recall)}, F1 {fmt(m.f1)}, "
+        f"ROC-AUC {fmt(m.roc_auc)}."
+    )
+    for note in m.notes:
+        print(f"  note: {note}")
+    print(f"Cross-validation: {result.cv.reason}")
+    print(result.comparison_text())
+    print("High scores are expected by construction on these synthetic data.")
+    print(f"Outputs written to {Path(output_dir)}:")
+    for path in files.values():
+        print(f"  {path.name}")
+    print(SHORT_DISCLAIMER)
+    return EXIT_OK
+
+
 def dashboard_command(port: int, *, headless: bool, root: Path = PROJECT_ROOT) -> list[str]:
     """Build the ``streamlit run`` command for the local dashboard.
 
@@ -349,6 +424,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "validate": _cmd_validate,
         "qc": _cmd_qc,
         "run-analysis": _cmd_run_analysis,
+        "ml-demo": _cmd_ml_demo,
         "dashboard": _cmd_dashboard,
     }
     try:

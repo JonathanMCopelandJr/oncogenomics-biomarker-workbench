@@ -65,14 +65,20 @@ qc:
   heatmap_max_samples: 40
   pca_components: 2
 
+# Optional educational ML demonstration (`obw ml-demo`, dashboard Model Demonstration page).
+# SYNTHETIC DATA ONLY - NOT a clinical prediction model. The positive class is
+# comparison.group_b; the other class is comparison.group_a. Features are the raw synthetic
+# values; imputation and scaling happen inside a scikit-learn Pipeline fitted on the
+# training split only.
 ml_demo:
   enabled: true
-  test_size: 0.25
-  cv_folds: 5
-  min_train_per_class_for_cv: 25
-  logistic_regression_c: 1.0
+  test_size: 0.25                  # stratified hold-out fraction; split seeded by `seed`
+  min_samples_per_class: 10        # below this, the demo refuses to run (too few samples)
+  cv_folds: 5                      # stratified K-fold on the training split only
+  min_train_per_class_for_cv: 25   # CV runs only if every training class has >= this many
+  logistic_regression_c: 1.0       # inverse L2 regularization strength
   max_iter: 1000
-  n_label_permutations: 20
+  n_label_permutations: 20         # permuted-label sanity baseline; 0 disables it
 
 figures:
   dpi: 150

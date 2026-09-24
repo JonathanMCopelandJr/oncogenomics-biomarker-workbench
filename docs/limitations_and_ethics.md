@@ -47,11 +47,40 @@ All outputs (dashboard, reports, exports) carry the DEMONSTRATION / SYNTHETIC la
 the nonclinical disclaimer. Results are described as "simulated differences detected by
 the workflow", never as biomarkers or clinical findings.
 
+## Optional ML demonstration: limitations
+
+`obw ml-demo` and the dashboard's Model Demonstration page train a logistic-regression
+classifier on the synthetic data.
+
+> **Synthetic-data educational example only. This is NOT a clinical prediction model.**
+> No model here predicts anything about any person. The classifier distinguishes two
+> arbitrary synthetic groups (`Group_A`, `Group_B`) that were simulated with deliberately
+> planted differences. It does not classify cancer, predict any disease or outcome, or
+> validate any biomarker.
+
+- **High scores are expected by construction.** The synthetic groups differ in 40
+  planted genes with large simulated effects, so near-perfect separation says only that
+  the code works. It says nothing about real data.
+- **The test set is tiny (20 samples).** Each misclassified sample changes accuracy by 5
+  percentage points. Metrics from sets this small are unstable and must not be quoted as
+  performance.
+- **The data are simulated:** independent genes, uniform noise, continuous values, balanced
+  batches. Real transcriptomics data are far more complex, and a model like this would
+  need independent external validation that this project does not and cannot provide.
+- **This is not a diagnostic, prognostic, or treatment tool.** The metrics are not
+  evidence of clinical performance and must not inform any decision about any person's
+  health.
+- **The permuted-label baseline** shows the scores a model gets when labels carry no
+  information. It is a sanity check, not a biological benchmark. Compare the correctly
+  labeled result with it, not with an absolute standard.
+
+The same wording appears on the dashboard page and in every ML output (`summary.md`,
+`ml_demo_results.json`). It is defined once, in `onco_workbench.ml.classifier_demo`.
+
 ## Feature status
 
-- **Not implemented:** the educational machine-learning demonstration and the
-  walkthrough notebook. The dashboard's Model Demonstration page shows the required
-  warnings and says so explicitly. No model metrics are shown, simulated, or invented.
+- **Not implemented:** the walkthrough notebook. It is planned as a separate, later
+  deliverable.
 - **The dashboard is local-only.** It binds to `localhost`, has no authentication or
   upload feature, reads only the committed synthetic demo files, and turns off
   usage-statistics collection. It is not designed for deployment or multi-user use.

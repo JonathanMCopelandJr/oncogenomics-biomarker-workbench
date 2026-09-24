@@ -5,10 +5,9 @@ the root is the parent of the directory containing the configuration file (confi
 files live in ``<root>/config/``), so the same file works on every operating system.
 
 Implemented sections (``seed``, ``paths``, ``synthetic``, ``validation``,
-``normalization``, ``comparison``, ``ranking``, ``qc``, ``figures``) are parsed
-into typed, validated dataclasses; unknown keys are rejected. Sections for
-features not yet built (currently ``ml_demo``) are kept as raw mappings in
-:attr:`WorkbenchConfig.sections`.
+``normalization``, ``comparison``, ``ranking``, ``qc``, ``ml_demo``, ``figures``)
+are parsed into typed, validated dataclasses; unknown keys are rejected. Any
+other top-level sections are kept as raw mappings in :attr:`WorkbenchConfig.sections`.
 """
 
 from __future__ import annotations
@@ -247,6 +246,45 @@ class FiguresConfig:
 
 
 @dataclass(frozen=True)
+class MLDemoConfig:
+    """Settings for the optional educational ML demonstration (synthetic data only).
+
+    The positive class is always ``comparison.group_b``; see
+    :mod:`onco_workbench.ml.classifier_demo`.
+    """
+
+    enabled: bool
+    test_size: float
+    min_samples_per_class: int
+    cv_folds: int
+    min_train_per_class_for_cv: int
+    logistic_regression_c: float
+    max_iter: int
+    n_label_permutations: int
+
+    def __post_init__(self) -> None:
+        section = "ml_demo"
+        if not 0.0 < self.test_size < 1.0:
+            _fail(section, f"test_size must be in (0, 1), got {self.test_size}.")
+        if self.min_samples_per_class < 4:
+            _fail(section, f"min_samples_per_class must be >= 4, got {self.min_samples_per_class}.")
+        if self.cv_folds < 2:
+            _fail(section, f"cv_folds must be >= 2, got {self.cv_folds}.")
+        if self.min_train_per_class_for_cv < self.cv_folds:
+            _fail(
+                section,
+                "min_train_per_class_for_cv must be >= cv_folds "
+                f"({self.min_train_per_class_for_cv} < {self.cv_folds}).",
+            )
+        if self.logistic_regression_c <= 0:
+            _fail(section, f"logistic_regression_c must be > 0, got {self.logistic_regression_c}.")
+        if self.max_iter < 100:
+            _fail(section, f"max_iter must be >= 100, got {self.max_iter}.")
+        if self.n_label_permutations < 0:
+            _fail(section, f"n_label_permutations must be >= 0, got {self.n_label_permutations}.")
+
+
+@dataclass(frozen=True)
 class WorkbenchConfig:
     """Complete, validated configuration."""
 
@@ -260,6 +298,7 @@ class WorkbenchConfig:
     comparison: ComparisonConfig
     ranking: RankingConfig
     qc: QCConfig
+    ml_demo: MLDemoConfig
     figures: FiguresConfig
     sections: Mapping[str, Any]
 
@@ -460,6 +499,25 @@ def _parse_qc(values: Mapping[str, Any]) -> QCConfig:
     )
 
 
+def _parse_ml_demo(values: Mapping[str, Any]) -> MLDemoConfig:
+    s = "ml_demo"
+    _check_keys(s, values, [f.name for f in dataclasses.fields(MLDemoConfig)])
+    return MLDemoConfig(
+        enabled=_as_bool(s, "enabled", values["enabled"]),
+        test_size=_as_float(s, "test_size", values["test_size"]),
+        min_samples_per_class=_as_int(s, "min_samples_per_class", values["min_samples_per_class"]),
+        cv_folds=_as_int(s, "cv_folds", values["cv_folds"]),
+        min_train_per_class_for_cv=_as_int(
+            s, "min_train_per_class_for_cv", values["min_train_per_class_for_cv"]
+        ),
+        logistic_regression_c=_as_float(
+            s, "logistic_regression_c", values["logistic_regression_c"]
+        ),
+        max_iter=_as_int(s, "max_iter", values["max_iter"]),
+        n_label_permutations=_as_int(s, "n_label_permutations", values["n_label_permutations"]),
+    )
+
+
 def _parse_figures(values: Mapping[str, Any]) -> FiguresConfig:
     s = "figures"
     _check_keys(s, values, [f.name for f in dataclasses.fields(FiguresConfig)])
@@ -509,6 +567,7 @@ def load_config(
         "comparison",
         "ranking",
         "qc",
+        "ml_demo",
         "figures",
     }
     return WorkbenchConfig(
@@ -522,6 +581,7 @@ def load_config(
         comparison=_parse_comparison(_section(raw, "comparison")),
         ranking=_parse_ranking(_section(raw, "ranking")),
         qc=_parse_qc(_section(raw, "qc")),
+        ml_demo=_parse_ml_demo(_section(raw, "ml_demo")),
         figures=_parse_figures(_section(raw, "figures")),
         sections={key: value for key, value in raw.items() if key not in typed},
     )
