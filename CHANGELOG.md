@@ -4,10 +4,17 @@ All notable changes to this project are documented in this file. The format foll
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-No version has been released yet. The package metadata declares `0.1.0` as the first
-planned version.
-
 ## [Unreleased]
+
+## [0.1.0] - 2026-09-23
+
+Initial public release. A reproducible, **synthetic-data, research-and-education-only**
+workbench for exploring transcriptomics-style analysis workflows. Its scope is
+nonclinical: it is **not** a medical device or a clinical decision-support system. The
+release includes documentation, a walkthrough notebook, a local Streamlit dashboard and
+command-line workbench, a test suite, and cross-platform CI (Ubuntu, Windows, and macOS).
+Code is released under the MIT License. The synthetic demo data files are dedicated under
+CC0-1.0.
 
 ### Added
 
@@ -31,7 +38,7 @@ planned version.
   - Labeled CSV tables and seven matplotlib figures with a CVD-validated palette.
   - A Markdown report and a run manifest.
   - `obw qc` and `obw run-analysis`.
-- **Dashboard:** a six-page local Streamlit app (`obw dashboard`) with interactive plotly
+- **Dashboard:** a local Streamlit app (`obw dashboard`) with interactive plotly
   charts, a filterable results table, and a labeled CSV download. It shows the
   research-only / synthetic-data banner on every page and has AppTest smoke tests.
 - **Quality and project files:** GitHub Actions CI (lint, plus tests on Ubuntu with
