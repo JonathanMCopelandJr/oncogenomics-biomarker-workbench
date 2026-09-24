@@ -9,9 +9,8 @@
 > real genes.
 
 **Project status:** All five planned phases are complete, plus the optional educational
-ML demonstration (version 0.1.0, **not yet released**). The walkthrough notebook is a
-planned later deliverable. See [`docs/release_checklist.md`](docs/release_checklist.md)
-for what remains before a release.
+ML demonstration and a walkthrough notebook (version 0.1.0, **not yet released**). See
+[`docs/release_checklist.md`](docs/release_checklist.md) for what remains before a release.
 
 ## Summary
 
@@ -68,7 +67,7 @@ data/raw/             user-supplied data, ignored by Git
 data/synthetic/       small synthetic demo data (~267 KB, CC0-1.0, regenerable)
 data/processed/       intermediate files, ignored by Git
 docs/                 methodology, architecture, ethics, reproducibility, plans
-notebooks/            walkthrough notebook (planned)
+notebooks/            5-10 minute walkthrough notebook (outputs stripped)
 outputs/              generated results, ignored by Git
 src/onco_workbench/   the Python package (all business logic)
 tests/                pytest suite
@@ -191,6 +190,44 @@ has no upload, external data ingestion, authentication, or deployment configurat
 
 Every page shows the research-only / synthetic-data banner at the top and the full
 disclaimer at the bottom.
+
+### Walkthrough notebook
+
+[`notebooks/oncogenomics_workbench_walkthrough.ipynb`](notebooks/oncogenomics_workbench_walkthrough.ipynb)
+is a 5–10 minute tour of the whole workflow on the synthetic demo data:
+
+- data loading and in-memory regeneration
+- validation and QC
+- PCA
+- the group comparison, the ranked simulated genes, a volcano-style plot, and a heatmap
+- the ground-truth check
+- a summary of the ML demonstration
+
+Every cell calls the `onco_workbench` package, and none re-implements the analysis. The
+notebook is committed with outputs stripped. Apparent differences and ranked genes
+reflect **intentionally implanted synthetic signals**, not biomarkers or biological
+findings.
+
+Jupyter is **optional**. It is not part of the core requirements. The exact tested
+versions are pinned in `requirements-notebooks.txt`, and `pyproject.toml` also declares
+them as a bounded `notebooks` extra.
+
+**Windows (PowerShell)**, from the repository root with the virtual environment activated:
+
+```powershell
+python -m pip install -r requirements-dev.txt -r requirements-notebooks.txt -e .
+python -m jupyterlab notebooks\oncogenomics_workbench_walkthrough.ipynb
+# or execute it headlessly into a temporary copy (the committed file stays output-free):
+python -m nbconvert --to notebook --execute notebooks\oncogenomics_workbench_walkthrough.ipynb --output-dir $env:TEMP\obw-notebook
+```
+
+**macOS / Linux:** use the same commands with `/` in paths and, for example,
+`--output-dir /tmp/obw-notebook`.
+
+Always use `python -m …` from the activated environment. A plain `jupyter` command can
+resolve to a different, globally installed Jupyter whose kernel lacks this project,
+which fails with `ModuleNotFoundError: onco_workbench`. The test suite also runs every
+notebook cell (`tests/test_notebook.py`) without Jupyter.
 
 ## Screenshots
 

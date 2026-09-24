@@ -1,0 +1,11 @@
+# OPTIONAL: exact pins for running the walkthrough notebook
+# (notebooks/oncogenomics_workbench_walkthrough.ipynb). Not needed by the CLI, the
+# dashboard, or the test suite. Install together with the core pins:
+#   python -m pip install -r requirements-dev.txt -r requirements-notebooks.txt -e .
+# Verified locally on Python 3.12 (Windows) on 2026-09-23. All pins support Python >= 3.10.
+jupyterlab==4.6.4
+ipykernel==7.3.0
+nbconvert==7.17.1
+nbclient==0.11.0
+nbformat==5.11.1
+nbstripout==0.9.1

@@ -46,6 +46,11 @@ summary, verification commands, open decisions, and a wait for explicit approval
    leakage, determinism, metric, and insufficient-data tests. `run-analysis` and the
    group-comparison preprocessing are unchanged. The walkthrough notebook is explicitly
    excluded and is planned as a later deliverable.
+7. **Walkthrough notebook** (approved separately). One notebook at
+   `notebooks/oncogenomics_workbench_walkthrough.ipynb` that uses package functions only,
+   is committed with outputs stripped, and is covered by `tests/test_notebook.py`. It
+   adds no new dependencies and makes no CI workflow change, because pytest already
+   executes the cells.
 
 ## Dependencies
 

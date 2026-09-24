@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -117,3 +118,41 @@ def test_gitignore_protects_data_and_secrets(repo_root: Path) -> None:
     rules = (repo_root / ".gitignore").read_text(encoding="utf-8").splitlines()
     for rule in (".venv/", ".env", ".streamlit/secrets.toml", "outputs/*", "data/raw/*"):
         assert rule in rules
+
+
+def _pins(path: Path) -> dict[str, str]:
+    pins = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.split("#", 1)[0].strip()
+        if "==" in line:
+            name, _, rest = line.partition("==")
+            pins[name.strip().lower()] = rest.split(";", 1)[0].strip()
+    return pins
+
+
+def test_notebook_dependencies_are_pinned_optional_and_consistent(repo_root: Path) -> None:
+    pins = _pins(repo_root / "requirements-notebooks.txt")
+    assert set(pins) == {
+        "jupyterlab",
+        "ipykernel",
+        "nbconvert",
+        "nbclient",
+        "nbformat",
+        "nbstripout",
+    }
+    extra = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))["project"][
+        "optional-dependencies"
+    ]["notebooks"]
+    constraints = {re.split(r"[<>=!~ ]", spec, maxsplit=1)[0].lower(): spec for spec in extra}
+    assert set(constraints) == set(pins)
+    for name, spec in constraints.items():
+        lower = re.search(r">=\s*([\d.]+)", spec)
+        upper = re.search(r"<\s*([\d.]+)", spec)
+        assert lower and upper, f"notebooks extra must bound {name} on both sides: {spec}"
+        pinned = tuple(map(int, pins[name].split(".")))
+        assert tuple(map(int, lower.group(1).split("."))) <= pinned
+        assert pinned < tuple(map(int, upper.group(1).split("."))), f"{name} pin outside {spec}"
+    core = set(_pins(repo_root / "requirements.txt")) | set(
+        _pins(repo_root / "requirements-dev.txt")
+    )
+    assert not core & set(pins), "Jupyter tooling must stay out of the core requirements"

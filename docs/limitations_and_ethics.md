@@ -79,8 +79,10 @@ The same wording appears on the dashboard page and in every ML output (`summary.
 
 ## Feature status
 
-- **Not implemented:** the walkthrough notebook. It is planned as a separate, later
-  deliverable.
+- **Walkthrough notebook:** it uses only the synthetic demo data and opens with the
+  required disclaimer. It frames every apparent difference and ranked gene as an
+  intentionally implanted synthetic signal, never as a biomarker, diagnostic result,
+  clinical prediction, biological finding, or treatment insight.
 - **The dashboard is local-only.** It binds to `localhost`, has no authentication or
   upload feature, reads only the committed synthetic demo files, and turns off
   usage-statistics collection. It is not designed for deployment or multi-user use.

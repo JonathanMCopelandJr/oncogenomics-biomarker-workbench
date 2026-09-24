@@ -36,6 +36,7 @@
 | `dashboard/data.py` | Streamlit-free dashboard helpers: load demo data, compare, filter, labeled CSV download | 4 (done) |
 | `dashboard/components.py` | Streamlit banner, page setup, footer, cached loaders | 4 (done) |
 | `ml/classifier_demo.py` | Optional educational classifier (synthetic only, NOT clinical). Stratified seeded split; imputer, scaler, and logistic-regression `Pipeline` fitted on training data only; gated CV; metrics; permuted-label baseline; labeled outputs. Independent of `pipeline.py` and `run-analysis` | done (optional) |
+| `notebooks/oncogenomics_workbench_walkthrough.ipynb` (outside the package) | Walkthrough that only calls package functions. Committed with outputs stripped. Checked and executed by `tests/test_notebook.py` | done |
 
 ## Dashboard
 

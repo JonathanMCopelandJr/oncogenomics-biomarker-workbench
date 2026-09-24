@@ -13,10 +13,28 @@ dashboard, CI). The clean-environment check below was run in the Phase 5 audit.
   `requirements-dev.txt` (runtime + dev tools) pin the **direct** dependencies to the
   exact versions used for local verification. Transitive dependencies are not pinned,
   to avoid lock files that break on other operating systems.
+- **Install and run from a clone of this repository**, using the editable install
+  (`-e .`) below. The CLI, dashboard, notebook, and tests read `config/`, `app/`,
+  `data/synthetic/`, and `notebooks/` from the repository checkout. These are not
+  included in a built wheel, so a wheel-only install is not supported.
 
 ```bash
 python -m pip install -r requirements-dev.txt -e .
 ```
+
+**Optional notebook tooling.** Only the walkthrough notebook needs Jupyter, so it stays
+out of the core requirements. `requirements-notebooks.txt` pins the direct notebook tools
+exactly: jupyterlab 4.6.4, ipykernel 7.3.0, nbconvert 7.17.1, nbclient 0.11.0,
+nbformat 5.11.1, and nbstripout 0.9.1, all of which support Python 3.10 or later. The
+`notebooks` extra in `pyproject.toml` declares the same packages with bounded ranges.
+
+```bash
+python -m pip install -r requirements-dev.txt -r requirements-notebooks.txt -e .
+python -m nbconvert --to notebook --execute notebooks/oncogenomics_workbench_walkthrough.ipynb --output-dir <temp-dir>
+```
+
+Run Jupyter through `python -m` from the project's environment. A global `jupyter`
+executable may use a different interpreter.
 
 ## Determinism
 

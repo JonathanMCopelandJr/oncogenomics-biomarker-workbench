@@ -67,6 +67,11 @@ If anything fails, say so and show the output. Do not claim success without runn
 | Validate data | `obw validate [--expression X.csv --metadata Y.csv]` |
 | QC only / full analysis | `obw qc` / `obw run-analysis [--output-dir DIR]` (writes to gitignored `outputs/`) |
 | Fast tests (skip end-to-end) | `python -m pytest -m "not e2e"` |
+| Execute the walkthrough notebook | `python -m nbconvert --to notebook --execute notebooks/oncogenomics_workbench_walkthrough.ipynb --output-dir <temp>` (needs `pip install -r requirements-notebooks.txt`; always use `python -m`, never a global `jupyter`) |
+
+Notebook rules: cells only call `onco_workbench` functions (no `def`/`class`, no
+duplicated logic, no file writes). Keep the required disclaimer as the first cell, and
+commit with outputs stripped. `tests/test_notebook.py` enforces all of this.
 | Dashboard (local only) | `obw dashboard [--port N] [--headless]` |
 | Optional ML demonstration | `obw ml-demo [--output-dir DIR]` (writes to gitignored `outputs/ml_demo/`) |
 

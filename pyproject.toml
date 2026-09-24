@@ -41,10 +41,14 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.5",
 ]
+# Optional, only for the walkthrough notebook. Exact tested pins: requirements-notebooks.txt.
 notebooks = [
-    "jupyterlab>=4.0",
-    "ipykernel>=6.29",
-    "nbstripout>=0.7",
+    "jupyterlab>=4.0,<5",
+    "ipykernel>=6.29,<8",
+    "nbconvert>=7.16,<8",
+    "nbclient>=0.10,<0.12",
+    "nbformat>=5.10,<6",
+    "nbstripout>=0.7,<1",
 ]
 
 [project.scripts]

@@ -53,7 +53,10 @@ planned version.
   - Tests for determinism, no preprocessing leakage, metric behavior, and insufficient
     class counts.
   - `obw run-analysis` and the group-comparison analysis are unchanged.
-
-### Not yet implemented
-
-- The walkthrough notebook (planned as a separate, later deliverable).
+- **Walkthrough notebook** (`notebooks/oncogenomics_workbench_walkthrough.ipynb`):
+  - A 5–10 minute tour on synthetic data only, opening with the required disclaimer.
+  - Every cell calls the `onco_workbench` package; no logic is duplicated.
+  - Committed with outputs stripped.
+  - `tests/test_notebook.py` checks the structure, disclaimer, section order, stripped
+    outputs, and absence of duplicated logic, and executes every cell without Jupyter.
+  - It adds no new dependencies; it uses the existing optional `notebooks` extra.

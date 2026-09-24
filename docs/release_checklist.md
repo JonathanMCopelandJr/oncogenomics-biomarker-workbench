@@ -23,7 +23,8 @@ GitHub-settings change has been made.
 | Check | Status | Evidence |
 |---|---|---|
 | Fresh environment from pinned requirements (a new venv; files copied as a fresh clone would be) | Done | `pip install -r requirements-dev.txt -e .` succeeded with exactly the pinned versions. `pip check` clean. (The venv had to be in a short path because of Windows `WinError 206`; the README now documents this) |
-| Lint and tests in the fresh environment | Done (Phase 5 audit, before the ML demo) | 54 files formatted, lint clean, 261 passed. **Not re-run after the ML demonstration**; recommended before release |
+| Lint and tests in the fresh environment | Done (re-run after the ML demo and notebook) | Clean copy and a separate venv, both in short paths outside the development repository; Python 3.12.10; README Windows steps plus `-r requirements-notebooks.txt`. `pip check` clean; 57 files formatted; lint clean; **309 passed** |
+| Full workflow in the fresh environment | Done | `obw generate-data` (byte-identical to committed), `obw run-analysis`, and `obw ml-demo` all exit 0. The notebook executed with `python -m nbconvert --execute`: 12/12 cells, 0 errors, 0 stderr, no kernel registration needed. The dashboard launched: `/_stcore/health` returned 200 `ok`, `/` returned 200, and it stopped cleanly |
 | Demo data regenerate byte-identically from the seed | Done | All 4 files (3 CSVs and the manifest) have SHA-256 identical to the committed files |
 | Analysis tables identical across environments | Done | All 5 CSV tables from `obw run-analysis` are byte-identical between the development and fresh environments. Both runs: 40/40 planted genes recovered, 0 unplanted genes flagged (expected by construction) |
 | Analysis tables identical across repeated runs | Done | Phase 3: all 5 CSV tables byte-identical |
@@ -57,8 +58,9 @@ GitHub-settings change has been made.
 ## Owner actions before a public release
 
 1. **Push and confirm CI passes** on all four matrix jobs, including Python 3.11.
-2. **ML demonstration:** implemented as an optional workflow (`obw ml-demo` and the
-   dashboard page). The **walkthrough notebook** remains a separate, later deliverable.
+2. **ML demonstration and walkthrough notebook:** both are implemented. The notebook
+   executes cleanly with `python -m nbconvert --execute` and in `tests/test_notebook.py`.
+   The fresh-environment reproduction has been re-run to include both (see Reproducibility).
 3. **Add dashboard screenshots** to `docs/assets/screenshots/` and link them from the
    README. They weren't captured in the audit because no browser was available.
 4. **Add the repository URL** to `CITATION.cff` (`repository-code`) and, if wanted, a CI
