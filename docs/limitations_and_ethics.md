@@ -86,6 +86,11 @@ The same wording appears on the dashboard page and in every ML output (`summary.
 - **The dashboard is local-only.** It binds to `localhost`, has no authentication or
   upload feature, reads only the committed synthetic demo files, and turns off
   usage-statistics collection. It is not designed for deployment or multi-user use.
+- **Dashboard verification is local only.** The dashboard was visually opened and
+  reviewed locally in a browser, and the screenshots in `docs/assets/screenshots/` were
+  captured from that session on the synthetic demo data. This is a local verification.
+  It is not a production deployment, a multi-user or security test, or an external
+  usability study, and the screenshots show only simulated data.
 
 ## Known technical limitations
 

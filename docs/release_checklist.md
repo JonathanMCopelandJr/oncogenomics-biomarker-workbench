@@ -61,8 +61,11 @@ GitHub-settings change has been made.
 2. **ML demonstration and walkthrough notebook:** both are implemented. The notebook
    executes cleanly with `python -m nbconvert --execute` and in `tests/test_notebook.py`.
    The fresh-environment reproduction has been re-run to include both (see Reproducibility).
-3. **Add dashboard screenshots** to `docs/assets/screenshots/` and link them from the
-   README. They weren't captured in the audit because no browser was available.
+3. ✅ **Completed — visual browser check and dashboard screenshots.** The dashboard was
+   opened and reviewed locally in a browser. Nine real screenshots from the locally
+   running Streamlit dashboard were added under `docs/assets/screenshots/`, and the README
+   links all nine: five in the main gallery and four under "Additional Views". This was a
+   local check only, not a production deployment or an external usability study.
 4. **Add the repository URL** to `CITATION.cff` (`repository-code`) and, if wanted, a CI
    status badge to the README. The URL isn't known locally.
 5. **GitHub settings** (not changed by this work): consider enabling private

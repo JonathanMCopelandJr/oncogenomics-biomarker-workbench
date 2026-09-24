@@ -229,10 +229,71 @@ resolve to a different, globally installed Jupyter whose kernel lacks this proje
 which fails with `ModuleNotFoundError: onco_workbench`. The test suite also runs every
 notebook cell (`tests/test_notebook.py`) without Jupyter.
 
-## Screenshots
+## Dashboard Screenshots
 
-`PLACEHOLDER`: Screenshots will be captured from the real dashboard and stored in
-`docs/assets/screenshots/`. No images are shown until they exist.
+These screenshots were captured from the dashboard running locally (`obw dashboard`) on
+the committed **synthetic** demo data. Every value shown is simulated. Group labels are
+arbitrary, gene IDs (`SYN_G…`) are not real genes, and nothing shown is a biomarker,
+diagnosis, or clinical result. **Research and education only; not for clinical use.**
+
+**Home.** Project overview with the research-only / synthetic-data disclaimers, the
+dataset at a glance (80 samples, 500 synthetic genes, `Group_A` and `Group_B`, 40
+planted signal genes), the list of pages, and quick-start commands.
+
+![Dashboard home page showing the synthetic-data disclaimer banners, dataset summary metrics, page list, and quick-start commands](docs/assets/screenshots/home.png)
+
+**Data Explorer.** Dataset shape (80 samples × 500 synthetic genes, 2 groups, 2
+batches), the sample metadata table, and a searchable list of synthetic gene IDs with
+per-gene summaries.
+
+![Data Explorer page showing dataset metrics, the synthetic sample metadata table, and the synthetic gene search table](docs/assets/screenshots/data-explorer.png)
+
+**Quality Control.** Validation passed (80 samples × 500 genes, 0 errors, 0 warnings),
+the dataset summary (0.52% missing values), and PCA of the samples colored by synthetic
+group.
+
+![Quality Control page showing the validation-passed message, dataset summary table, and PCA scatter plot colored by synthetic group](docs/assets/screenshots/quality-control.png)
+
+**Group Comparison.** Group_B vs Group_A at the default display thresholds (BH-adjusted
+p ≤ 0.05, |Cohen's d| ≥ 0.5): 500 genes tested and 40 meeting both thresholds (20
+higher and 20 lower in Group_B). There is also a volcano-style plot and the top 20
+genes by ranking score. These are the **intentionally planted synthetic differences**.
+
+![Group Comparison page showing threshold controls, summary metrics, a volcano-style plot, and a bar chart of the top 20 synthetic genes by Cohen's d](docs/assets/screenshots/group-comparison-volcano.png)
+
+**Model Demonstration.** The optional educational classifier, labeled "NOT a clinical
+prediction model". It shows the positive class (Group_B), the setup (stratified split,
+pipeline fitted on the training split only), held-out synthetic test-set metrics, a
+confusion matrix, and 5-fold cross-validation on the training split. The perfect scores
+on 20 synthetic test samples are **expected by construction** and are not a performance
+claim.
+
+![Model Demonstration page showing the nonclinical warnings, the four synthetic-data statements, the setup, held-out test metrics, a confusion matrix, and cross-validation results](docs/assets/screenshots/model-demonstration.png)
+
+### Additional Views
+
+<table>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/screenshots/data-explorer-gene-detail.png" alt="Data Explorer gene detail showing a box plot of SYN_G0001 by synthetic group, per-group summary, and overall summary statistics">
+      <br><sub><b>Gene detail:</b> one synthetic gene by group, with per-group and overall summary statistics.</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/assets/screenshots/quality-control-missingness.png" alt="Quality Control views showing per-sample expression distributions, missingness metrics, missing values per sample, and genes with the most missing values">
+      <br><sub><b>QC detail:</b> per-sample expression distributions and missing-value summaries.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%">
+      <img src="docs/assets/screenshots/group-comparison-results-table.png" alt="Group Comparison results table listing the ten highest-ranked synthetic genes with statistics, a gene filter, and a labeled CSV download button">
+      <br><sub><b>Results table:</b> sortable, filterable per-gene statistics and a labeled synthetic CSV download.</sub>
+    </td>
+    <td width="50%">
+      <img src="docs/assets/screenshots/methods-and-limitations.png" alt="Methods and Limitations page showing workflow steps, limitations, data provenance, and reproducibility details">
+      <br><sub><b>Methods and Limitations:</b> workflow, limitations, data provenance, and reproducibility details.</sub>
+    </td>
+  </tr>
+</table>
 
 ## Data provenance
 
