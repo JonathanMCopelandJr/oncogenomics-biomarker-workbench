@@ -1,0 +1,74 @@
+# Default configuration for oncogenomics-biomarker-workbench.
+#
+# RESEARCH AND EDUCATION ONLY - NOT FOR CLINICAL USE.
+# All values below apply to SYNTHETIC demonstration data.
+#
+# Phase 1 status: this file defines the structure and default values only.
+# It is not read by any code until the loader is added in Phase 2.
+# Paths are relative to the repository root and resolved with pathlib.
+
+seed: 42
+
+paths:
+  raw_dir: data/raw
+  synthetic_dir: data/synthetic
+  processed_dir: data/processed
+  outputs_dir: outputs
+  expression_file: data/synthetic/demo_expression.csv
+  metadata_file: data/synthetic/demo_metadata.csv
+  ground_truth_file: data/synthetic/demo_ground_truth.csv
+
+synthetic:
+  n_samples: 80
+  n_genes: 500
+  group_labels: [Group_A, Group_B]
+  group_proportions: [0.5, 0.5]
+  n_batches: 2
+  batch_shift_sd: 0.3            # mild additive batch offset (log2-like units)
+  baseline_mean: 8.0             # log2-like expression centre
+  baseline_sd: 1.5               # spread of per-gene baseline means
+  noise_sd: 0.5                  # per-value noise
+  n_signal_genes_up: 20          # higher in Group_B
+  n_signal_genes_down: 20        # lower in Group_B
+  signal_effect_range: [0.8, 2.0]  # absolute mean shift for signal genes
+  missing_fraction: 0.005        # injected missingness to exercise validation
+  gene_id_prefix: SYN_G          # neutral IDs; never real gene symbols
+
+validation:
+  min_samples_per_group: 3
+  max_missing_fraction_per_gene: 0.2
+  max_missing_fraction_per_sample: 0.2
+
+normalization:
+  median_center_samples: true    # for group comparison
+  zscore_genes_for_plots: true   # for PCA / heatmaps only
+
+comparison:
+  group_a: Group_A
+  group_b: Group_B
+  min_non_missing_per_group: 3
+  fdr_method: fdr_bh
+  fdr_threshold: 0.05
+  effect_size_threshold: 0.5     # |Cohen's d|, display threshold only
+
+ranking:
+  # score = |d| * -log10(max(p_adj, p_floor)); a sorting heuristic, not inference.
+  p_floor: 1.0e-300
+  top_n: 20
+
+qc:
+  heatmap_max_samples: 40
+  pca_components: 2
+
+ml_demo:
+  enabled: true
+  test_size: 0.25
+  cv_folds: 5
+  min_train_per_class_for_cv: 25
+  logistic_regression_c: 1.0
+  max_iter: 1000
+  n_label_permutations: 20
+
+figures:
+  dpi: 150
+  format: png

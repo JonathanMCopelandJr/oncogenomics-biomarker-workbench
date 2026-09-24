@@ -1,0 +1,73 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# ---- Virtual environments / environment files ----
+.venv/
+venv/
+env/
+ENV/
+.python-version
+.conda/
+.env
+.env.*
+!.env.example
+
+# ---- Secrets (never commit) ----
+.streamlit/secrets.toml
+*.pem
+*.key
+credentials*.json
+secrets.*
+
+# ---- Test / coverage / lint caches ----
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# ---- Notebooks ----
+.ipynb_checkpoints/
+
+# ---- IDE / OS ----
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Data: keep directory placeholders and READMEs only ----
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/README.md
+data/processed/*
+!data/processed/.gitkeep
+
+# ---- Generated outputs ----
+outputs/*
+!outputs/.gitkeep
+
+# ---- Large / binary data formats (safety net) ----
+*.h5
+*.h5ad
+*.hdf5
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.joblib
+*.zip
+*.tar.gz

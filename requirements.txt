@@ -1,0 +1,15 @@
+# Exact pins for direct runtime dependencies (compatible ranges live in pyproject.toml).
+# Verified locally on Python 3.12 (Windows) on 2026-09-23.
+# numpy/scipy latest releases require Python >= 3.12, so 3.11 uses the newest
+# releases that still support it (not yet verified locally; covered by CI from Phase 5).
+numpy==2.5.3; python_version >= "3.12"
+numpy==2.4.6; python_version < "3.12"
+scipy==1.18.1; python_version >= "3.12"
+scipy==1.17.1; python_version < "3.12"
+pandas==3.0.6
+statsmodels==0.15.0
+scikit-learn==1.9.1
+plotly==7.1.0
+matplotlib==3.11.2
+streamlit==1.64.0
+PyYAML==6.0.3

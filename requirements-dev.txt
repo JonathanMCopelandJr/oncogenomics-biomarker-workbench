@@ -1,0 +1,6 @@
+# Runtime pins plus development tools.
+# Install with:  python -m pip install -r requirements-dev.txt -e .
+-r requirements.txt
+pytest==9.1.1
+pytest-cov==7.1.0
+ruff==0.16.8

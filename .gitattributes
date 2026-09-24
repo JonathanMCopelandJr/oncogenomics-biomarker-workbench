@@ -1,0 +1,13 @@
+# Normalize line endings so files are identical on Windows, macOS, and Linux.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Windows batch files require CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
