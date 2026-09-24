@@ -16,7 +16,7 @@ This is a local research and education tool that works on **synthetic** data:
 
 ## Supported versions
 
-Only the latest commit on the `main` branch is supported. No versions have been released yet.
+Only the latest commit on the `main` branch is supported. The current released version is v0.1.0.
 
 ## Reporting a vulnerability
 
