@@ -51,6 +51,17 @@ summary, verification commands, open decisions, and a wait for explicit approval
    is committed with outputs stripped, and is covered by `tests/test_notebook.py`. It
    adds no new dependencies and makes no CI workflow change, because pytest already
    executes the cells.
+8. **Phase 6A: related work and future roadmap (documentation only; approved).**
+   - Added `docs/related_work.md` and a README "Related Work and Future Extensions"
+     section.
+   - The public list `hussius/deeplearning-biology` was consulted only as a discovery
+     and context index (accessed 2026-09-23).
+   - No external code, data, models, weights, dependencies, or benchmark claims were
+     added. No application behavior, tests, configuration, CI, or citation metadata
+     changed.
+   - A possible future synthetic transcriptomics autoencoder is a roadmap item only and
+     is **not implemented**.
+   - `CLAUDE.md` records the matching guardrail.
 
 ## Dependencies
 

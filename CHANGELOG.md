@@ -60,3 +60,12 @@ planned version.
   - `tests/test_notebook.py` checks the structure, disclaimer, section order, stripped
     outputs, and absence of duplicated logic, and executes every cell without Jupyter.
   - It adds no new dependencies; it uses the existing optional `notebooks` extra.
+- **Phase 6A documentation: related work and a future roadmap (documentation only).**
+  - New `docs/related_work.md` and a README "Related Work and Future Extensions" section.
+  - Records that the public list `hussius/deeplearning-biology` was consulted only as a
+    discovery index. Nothing was copied, reproduced, vendored, depended on, or
+    benchmarked against.
+  - Describes a possible future synthetic-data autoencoder as **not implemented**.
+  - A matching guardrail was added to `CLAUDE.md`.
+  - No code, data, models, dependencies, tests, configuration, or application behavior
+    changed.

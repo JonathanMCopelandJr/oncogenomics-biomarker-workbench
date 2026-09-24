@@ -29,6 +29,20 @@ validated biomarker-discovery system.
 6. **Synthetic gene IDs stay neutral** (`SYN_G0001`, ...). Do not map them to real
    gene symbols.
 7. Label demo outputs **DEMONSTRATION / SYNTHETIC** (see `disclaimers.DATA_LABEL`).
+8. **Related work and the deep-learning roadmap** ([`docs/related_work.md`](docs/related_work.md)).
+   Future work that refers to the broader deep-learning-in-biology landscape must not:
+   - treat https://github.com/hussius/deeplearning-biology as a code source,
+     dependency, dataset, benchmark, or implementation source. It is a discovery and
+     context index only.
+   - copy, vendor, reproduce, or claim results from projects listed there
+   - download or use external datasets, clinical data, patient data, pretrained
+     biological models, model weights, or external APIs without explicit user approval
+     and appropriate documentation
+   - introduce clinical, diagnostic, prognostic, treatment, biomarker-validation,
+     biological-discovery, or real-world performance claims
+   - add deep-learning code or dependencies without a separately approved, bounded
+     implementation plan. The synthetic autoencoder in `docs/related_work.md` is a
+     roadmap item only and is **not implemented**.
 
 ## Working practices
 

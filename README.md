@@ -338,6 +338,24 @@ data. Results on synthetic data show only that the code recovers what was plante
 and say nothing about real biology. See
 [`docs/limitations_and_ethics.md`](docs/limitations_and_ethics.md).
 
+## Related Work and Future Extensions
+
+This workbench is an **independent implementation**. It uses transparent classical
+statistics and one baseline logistic-regression demonstration on **fully synthetic
+transcriptomics-style data**. It does not use deep learning.
+
+To place the project in the broader landscape of deep learning in biology, the public
+curated list [hussius/deeplearning-biology](https://github.com/hussius/deeplearning-biology)
+was consulted **only as a discovery index**. This project does not copy, reproduce,
+vendor, depend on, benchmark against, or claim results from any implementation listed
+there.
+
+A possible future extension, a small autoencoder trained on this repository's synthetic
+data for teaching, is described in [`docs/related_work.md`](docs/related_work.md). It is
+**not implemented**. If it is ever built, it would use synthetic data only and remain
+educational and nonclinical, with no patient or clinical data, pretrained biological
+models, external weights, or unverified external datasets.
+
 ## Skills demonstrated
 
 | Area | Where |

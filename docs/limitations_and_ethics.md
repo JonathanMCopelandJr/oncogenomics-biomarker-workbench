@@ -91,6 +91,14 @@ The same wording appears on the dashboard page and in every ML output (`summary.
   captured from that session on the synthetic demo data. This is a local verification.
   It is not a production deployment, a multi-user or security test, or an external
   usability study, and the screenshots show only simulated data.
+- **Related work and the deep-learning roadmap are documentation only.**
+  [`related_work.md`](related_work.md) links to the public list
+  `hussius/deeplearning-biology` purely as a discovery index. This project does not
+  copy, reproduce, vendor, depend on, benchmark against, or claim results from anything
+  listed there. The deep-learning roadmap is **not implemented**. Any future module
+  would use only this repository's synthetic data, remain educational and nonclinical,
+  and would not use patient data, real clinical data, pretrained biological models,
+  external model weights, or unverified external datasets.
 
 ## Known technical limitations
 
