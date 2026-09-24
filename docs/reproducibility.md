@@ -1,6 +1,7 @@
 # Reproducibility
 
-**Status:** Covers Phases 1–3 (environment, synthetic data, analysis pipeline).
+**Status:** Covers all phases (environment, synthetic data, analysis pipeline,
+dashboard, CI). The clean-environment check below was run in the Phase 5 audit.
 
 ## Environment
 
@@ -69,3 +70,36 @@ To reproduce a run: check out the recorded commit, install the pinned requiremen
 and run the same command with the same configuration. Then compare the output
 checksums with the manifest. PNG checksums may differ across matplotlib versions or
 platforms because of font rendering. The CSV tables are the reproducible record.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` installs the pinned requirements and runs on every push and
+pull request:
+
+- ruff formatting and lint checks
+- `pip check`
+- the full pytest suite, including the byte-identical demo-data regeneration test and
+  the end-to-end runs
+- `obw validate`
+- `obw run-analysis`
+
+The test matrix is Ubuntu with Python 3.11 and 3.12, plus Windows and macOS with
+Python 3.12. `.gitattributes` forces LF line endings on checkout, so the committed CSV
+checksums match on Windows too. The workflow has read-only permissions and uses no
+secrets.
+
+## Clean-environment verification (Phase 5 audit)
+
+To check that the repository works from scratch:
+
+1. Copy every tracked and not-ignored file to a new directory. This is equivalent to a
+   fresh clone.
+2. Create a brand-new virtual environment.
+3. Run `pip install -r requirements-dev.txt -e .` and then `pip check`.
+4. Run the lint checks and the full test suite.
+5. Regenerate the demo data into a temporary folder and compare SHA-256 checksums with
+   the committed files.
+6. Run `obw run-analysis` and compare its CSV tables with a run from the development
+   environment.
+
+The results are recorded in [`release_checklist.md`](release_checklist.md).

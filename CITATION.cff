@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: >-
+  If you use this software, please cite it using these metadata. It is a research and
+  education project that works on synthetic data and is not validated for any clinical
+  use.
+type: software
+title: oncogenomics-biomarker-workbench
+abstract: >-
+  A reproducible research and education workbench for exploring synthetic
+  transcriptomics-style data: data validation, quality control, a transparent two-group
+  comparison (Welch t-test, Cohen's d, Benjamini-Hochberg adjustment), documented
+  ranking, figures, reports, and a local Streamlit dashboard. It is not a medical device
+  and makes no clinical or biomarker claims.
+authors:
+  - family-names: Copeland
+    given-names: Jonathan
+version: 0.1.0
+license: MIT
+keywords:
+  - bioinformatics
+  - education
+  - reproducible research
+  - synthetic data
+  - transcriptomics
+  - streamlit

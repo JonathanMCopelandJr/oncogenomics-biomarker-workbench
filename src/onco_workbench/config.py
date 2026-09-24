@@ -127,7 +127,7 @@ class SyntheticConfig:
     @property
     def group_sizes(self) -> tuple[int, int]:
         """Number of samples assigned to each of the two groups."""
-        n_a = int(round(self.n_samples * self.group_proportions[0]))
+        n_a = round(self.n_samples * self.group_proportions[0])
         return n_a, self.n_samples - n_a
 
 

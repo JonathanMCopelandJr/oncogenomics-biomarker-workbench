@@ -37,7 +37,10 @@ summary, verification commands, open decisions, and a wait for explicit approval
    an explicit "not yet implemented" notice, because the ML demo is still unscheduled.
 5. **Quality, CI, and polish.** GitHub Actions (Ubuntu 3.11/3.12, Windows and macOS on
    3.12), community files, `CITATION.cff`, `CHANGELOG.md`, docs completion, a
-   release-readiness checklist, and a final audit. No push or publish.
+   release-readiness checklist, and a final audit. No push or publish. *As delivered:*
+   the items above plus repository hygiene tests, a clean-environment reproduction, a
+   package-build check, and strict one-off lint audits. The results are in
+   `docs/release_checklist.md`.
 
 ## Dependencies
 

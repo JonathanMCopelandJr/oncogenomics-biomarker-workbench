@@ -46,3 +46,26 @@ engineering, data validation, basic statistics, and visualization practices on
 All outputs (dashboard, reports, exports) carry the DEMONSTRATION / SYNTHETIC label and
 the nonclinical disclaimer. Results are described as "simulated differences detected by
 the workflow", never as biomarkers or clinical findings.
+
+## Feature status
+
+- **Not implemented:** the educational machine-learning demonstration and the
+  walkthrough notebook. The dashboard's Model Demonstration page shows the required
+  warnings and says so explicitly. No model metrics are shown, simulated, or invented.
+- **The dashboard is local-only.** It binds to `localhost`, has no authentication or
+  upload feature, reads only the committed synthetic demo files, and turns off
+  usage-statistics collection. It is not designed for deployment or multi-user use.
+
+## Known technical limitations
+
+- The demo data and analysis are verified byte-for-byte on Python 3.12 with the pinned
+  NumPy 2.5.3. Python 3.11 uses NumPy 2.4.6, because newer NumPy releases require Python
+  3.12 or later. It is checked only by CI. If a different NumPy version changed the
+  random stream, the regeneration test would fail loudly.
+- Figure PNG files may differ in bytes across platforms and matplotlib versions (font
+  rendering). The CSV tables are the reproducible record.
+- The package is meant to be used from a repository checkout (editable install). A
+  built wheel does not include `config/`, `app/`, or the demo data.
+- The synthetic generator is deliberately simple: independent genes, equal noise,
+  continuous values, and large planted effects. Near-perfect recovery is therefore
+  expected and is not a performance claim.
